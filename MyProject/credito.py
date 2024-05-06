@@ -55,7 +55,7 @@ def Cargar_Datos():
                 ID_UNICO = row[1]
                 parametro = [cedula,fecha,celular,ID_UNICO]
                 ruta_php = "C:/xampp/php/php.exe"
-                ruta = "C:\\xampp\\htdocs\\credito_api\\credito.php"
+                ruta = "C:\\xampp\\htdocs\\credito_express_api\\credito.php"
                 comando = [ruta_php, ruta] + parametro
                 resultado = subprocess.run(comando, capture_output=True, text=True)
                 print(resultado.stdout)
