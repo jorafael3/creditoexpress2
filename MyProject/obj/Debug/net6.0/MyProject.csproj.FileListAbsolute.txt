@@ -1,0 +1,15 @@
+C:\xampp\htdocs\creditoexpress\MyProject\bin\Debug\net6.0\MyProject.exe
+C:\xampp\htdocs\creditoexpress\MyProject\bin\Debug\net6.0\MyProject.deps.json
+C:\xampp\htdocs\creditoexpress\MyProject\bin\Debug\net6.0\MyProject.runtimeconfig.json
+C:\xampp\htdocs\creditoexpress\MyProject\bin\Debug\net6.0\MyProject.dll
+C:\xampp\htdocs\creditoexpress\MyProject\bin\Debug\net6.0\MyProject.pdb
+C:\xampp\htdocs\creditoexpress\MyProject\obj\Debug\net6.0\MyProject.csproj.AssemblyReference.cache
+C:\xampp\htdocs\creditoexpress\MyProject\obj\Debug\net6.0\MyProject.GeneratedMSBuildEditorConfig.editorconfig
+C:\xampp\htdocs\creditoexpress\MyProject\obj\Debug\net6.0\MyProject.AssemblyInfoInputs.cache
+C:\xampp\htdocs\creditoexpress\MyProject\obj\Debug\net6.0\MyProject.AssemblyInfo.cs
+C:\xampp\htdocs\creditoexpress\MyProject\obj\Debug\net6.0\MyProject.csproj.CoreCompileInputs.cache
+C:\xampp\htdocs\creditoexpress\MyProject\obj\Debug\net6.0\MyProject.dll
+C:\xampp\htdocs\creditoexpress\MyProject\obj\Debug\net6.0\refint\MyProject.dll
+C:\xampp\htdocs\creditoexpress\MyProject\obj\Debug\net6.0\MyProject.pdb
+C:\xampp\htdocs\creditoexpress\MyProject\obj\Debug\net6.0\MyProject.genruntimeconfig.cache
+C:\xampp\htdocs\creditoexpress\MyProject\obj\Debug\net6.0\ref\MyProject.dll
