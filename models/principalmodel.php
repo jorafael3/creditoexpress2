@@ -723,6 +723,7 @@ class principalmodel extends Model
         $ESTADO_CREDITO_MONTO = $DATOS["credito_aprobado"];
         $MONTO = $DATOS["API_SOL_montoMaximo"];
         $PLAZO = $DATOS["API_SOL_plazoMaximo"];
+        $API_SOL_descripcion = $DATOS["API_SOL_descripcion"];
         $CELULAR = $DATOS["numero"];
 
         $this->GUARDAR_CANTIDAD_DE_CONSULTAS($CELULAR);
@@ -766,6 +767,9 @@ class principalmodel extends Model
             </div>';
             // $this->ELIMINAR_LINEA_ERROR($ID_UNICO);
             echo json_encode([$TIPO_CONSULTA, [], $DATOS, $html]);
+            exit();
+        } else {
+            echo json_encode([0, "No se pudo realizar la verificacion", "Por favor intentelo en un momento", $API_SOL_descripcion]);
             exit();
         }
     }
@@ -1752,9 +1756,6 @@ class principalmodel extends Model
             exit();
         }
     }
-
-
-
 
 
 
