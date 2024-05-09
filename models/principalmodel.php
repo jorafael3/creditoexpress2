@@ -323,6 +323,7 @@ class principalmodel extends Model
                             <span class="fw-bold fs-2">Correo </span>
                             <span class="text-muted fw-bold fs-5">(opcional)</span>
                         </label>
+                        <h6 class="text-muted">Aquí tambien enviaremos el resultado de tu consulta</h6>
                         <input placeholder="xxxxxxx@mail.com" id="CORREO" type="text" class="form-control form-control-solid" name="input1" placeholder="" value="" />
                     </div>
                 ';
@@ -472,6 +473,7 @@ class principalmodel extends Model
         try {
             $cedula = trim($param["cedula"]);
             $celular = base64_decode(trim($param["celular"]));
+            $correo = (trim($param["email"]));
             $ID_UNICO = date("Ymdhms") . $cedula;
             $ip = $this->getRealIP();
             $dispositivo = $_SERVER['HTTP_USER_AGENT'];
@@ -481,6 +483,7 @@ class principalmodel extends Model
                 (
                     cedula,
                     numero,
+                    correo,
                     ID_UNICO,
                     ip,
                     dispositivo
@@ -489,6 +492,7 @@ class principalmodel extends Model
                 (
                     :cedula,
                     :numero,
+                    :correo,
                     :ID_UNICO,
                     :ip,
                     :dispositivo
@@ -496,6 +500,7 @@ class principalmodel extends Model
             ');
             $query->bindParam(":cedula", $cedula, PDO::PARAM_STR);
             $query->bindParam(":numero", $celular, PDO::PARAM_STR);
+            $query->bindParam(":correo", $correo, PDO::PARAM_STR);
             $query->bindParam(":ip", $ip, PDO::PARAM_STR);
             $query->bindParam(":dispositivo", $dispositivo, PDO::PARAM_STR);
             $query->bindParam(":ID_UNICO", $ID_UNICO, PDO::PARAM_STR);
@@ -1782,52 +1787,99 @@ class principalmodel extends Model
         }
     }
 
-    // function Enviar_correo_incidencias($DATOS_INCIDENCIA)
-    // {
+    function ENVIAR_CORREO_CREDITO($DATOS_INCIDENCIA)
+    {
 
-    //     try {
-    //         $msg = "<div style='font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;'>";
-    //         $msg .= "<h1 style='text-align:center; color: #24448c;'>Actualización de datos</h1><br><br>";
-    //         $msg .= "<p style='text-align: justify;'>ERROR CREDITO EXPRESS INCIDENCIA</p>";
-    //         $msg .= "<p>Fecha y hora de envío: " . date('d/m/Y H:i:s') . "</p>";
-    //         $msg .= "<p>ERROR_TYPE: " . $DATOS_INCIDENCIA["ERROR_TYPE"] . "</p>";
-    //         $msg .= "<p>ERROR_CODE: " . $DATOS_INCIDENCIA["ERROR_CODE"] . "</p>";
-    //         $msg .= "<p>ERROR_TEXT: " . $DATOS_INCIDENCIA["ERROR_TEXT"] . "</p>";
-    //         $msg .= "<div style='text-align:center;'>";
-    //         $msg .= "</div>";
+        try {
+            $msg = "<div style='font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;'>";
+            $msg .= "<h1 style='text-align:center; color: #24448c;'>Actualización de datos</h1><br><br>";
+            $msg .= "<p style='text-align: justify;'>ERROR CREDITO EXPRESS INCIDENCIA</p>";
+            $msg .= "<p>Fecha y hora de envío: " . date('d/m/Y H:i:s') . "</p>";
+            $msg .= "<p>ERROR_TYPE: " . $DATOS_INCIDENCIA["ERROR_TYPE"] . "</p>";
+            $msg .= "<p>ERROR_CODE: " . $DATOS_INCIDENCIA["ERROR_CODE"] . "</p>";
+            $msg .= "<p>ERROR_TEXT: " . $DATOS_INCIDENCIA["ERROR_TEXT"] . "</p>";
+            $msg .= "<div style='text-align:center;'>";
+            $msg .= "</div>";
 
-    //         $m = new PHPMailer(true);
-    //         $m->CharSet = 'UTF-8';
-    //         $m->isSMTP();
-    //         $m->SMTPAuth = true;
-    //         $m->Host = 'smtp.gmail.com';
-    //         $m->Username = 'jalvaradoe3@gmail.com';
-    //         $m->Password = 'izfq lqiv kbrc etsx';
-    //         $m->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-    //         $m->Port = 465;
-    //         $m->setFrom('jalvaradoe3@gmail.com', 'Credito express');
-    //         $m->addAddress('jalvaradoe3@gmail.com');
-    //         $m->isHTML(true);
-    //         $titulo = strtoupper('Credito express incidencia');
-    //         $m->Subject = $titulo;
-    //         $m->Body = $msg;
-    //         //$m->addAttachment($atta);
-    //         // $m->send();
-    //         if ($m->send()) {
-    //             // echo "<pre>";
-    //             // $mensaje = ("Correo enviado ");
-    //             // echo "</pre>";
-    //             // echo $mensaje;
-    //             return 1;
-    //         } else {
-    //             //echo "Ha ocurrido un error al enviar el correo electrónico.";
-    //             return 0;
-    //         }
-    //     } catch (Exception $e) {
-    //         $e = $e->getMessage();
-    //         return $e;
-    //     }
-    // }
+            $m = new PHPMailer(true);
+            $m->CharSet = 'UTF-8';
+            $m->isSMTP();
+            $m->SMTPAuth = true;
+            $m->Host = 'smtp.gmail.com';
+            $m->Username = 'jalvaradoe3@gmail.com';
+            $m->Password = 'izfq lqiv kbrc etsx';
+            $m->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $m->Port = 465;
+            $m->setFrom('jalvaradoe3@gmail.com', 'Credito express');
+            $m->addAddress('jalvaradoe3@gmail.com');
+            $m->isHTML(true);
+            $titulo = strtoupper('Credito express incidencia');
+            $m->Subject = $titulo;
+            $m->Body = $msg;
+            //$m->addAttachment($atta);
+            // $m->send();
+            if ($m->send()) {
+                // echo "<pre>";
+                // $mensaje = ("Correo enviado ");
+                // echo "</pre>";
+                // echo $mensaje;
+                return 1;
+            } else {
+                //echo "Ha ocurrido un error al enviar el correo electrónico.";
+                return 0;
+            }
+        } catch (Exception $e) {
+            $e = $e->getMessage();
+            return $e;
+        }
+    }
+
+    function Enviar_correo_incidencias($DATOS_INCIDENCIA)
+    {
+
+        try {
+            $msg = "<div style='font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;'>";
+            $msg .= "<h1 style='text-align:center; color: #24448c;'>Actualización de datos</h1><br><br>";
+            $msg .= "<p style='text-align: justify;'>ERROR CREDITO EXPRESS INCIDENCIA</p>";
+            $msg .= "<p>Fecha y hora de envío: " . date('d/m/Y H:i:s') . "</p>";
+            $msg .= "<p>ERROR_TYPE: " . $DATOS_INCIDENCIA["ERROR_TYPE"] . "</p>";
+            $msg .= "<p>ERROR_CODE: " . $DATOS_INCIDENCIA["ERROR_CODE"] . "</p>";
+            $msg .= "<p>ERROR_TEXT: " . $DATOS_INCIDENCIA["ERROR_TEXT"] . "</p>";
+            $msg .= "<div style='text-align:center;'>";
+            $msg .= "</div>";
+
+            $m = new PHPMailer(true);
+            $m->CharSet = 'UTF-8';
+            $m->isSMTP();
+            $m->SMTPAuth = true;
+            $m->Host = 'smtp.gmail.com';
+            $m->Username = 'jalvaradoe3@gmail.com';
+            $m->Password = 'izfq lqiv kbrc etsx';
+            $m->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $m->Port = 465;
+            $m->setFrom('jalvaradoe3@gmail.com', 'Credito express');
+            $m->addAddress('jalvaradoe3@gmail.com');
+            $m->isHTML(true);
+            $titulo = strtoupper('Credito express incidencia');
+            $m->Subject = $titulo;
+            $m->Body = $msg;
+            //$m->addAttachment($atta);
+            // $m->send();
+            if ($m->send()) {
+                // echo "<pre>";
+                // $mensaje = ("Correo enviado ");
+                // echo "</pre>";
+                // echo $mensaje;
+                return 1;
+            } else {
+                //echo "Ha ocurrido un error al enviar el correo electrónico.";
+                return 0;
+            }
+        } catch (Exception $e) {
+            $e = $e->getMessage();
+            return $e;
+        }
+    }
 
     function getRealIP()
     {
