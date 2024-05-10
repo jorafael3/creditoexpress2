@@ -11,6 +11,7 @@ from datetime import datetime
 # from Crypto.Cipher import PKCS1_OAEP
 import os
 import subprocess
+import datetime
 
 
 # //pip install pycryptodome
@@ -37,28 +38,36 @@ def Cargar_Datos():
                 # print("Conexión establecida")
                 pass
 
-            cursor = conexion.cursor()
-            consulta = 'SELECT * FROM creditos_solicitados WHERE  API_SOL_ESTADO = 3'
-            # valores = (numero,)
-            cursor.execute(consulta)
-            resultados = cursor.fetchall()
-            print(len(resultados))
-            for row in resultados:
-                print(row[2])
-                cedula = row[2]
-                fecha = row[6]
-                celular = row[3]
-                ID_UNICO = row[1]
-                parametro = [cedula,fecha,celular,ID_UNICO]
-                ruta_php = "C:/xampp/php/php.exe"
-                ruta = "C:\\xampp\\htdocs\\credito_express_api\\credito.php"
-                comando = [ruta_php, ruta] + parametro
-                resultado = subprocess.run(comando, capture_output=True, text=True)
-                print(resultado.stdout)
+
+            hora_actual = datetime.datetime.now()
+            hora_formateada = hora_actual.strftime("%H")
+            print("La hora actual es:", hora_formateada)
+
+            if int(hora_formateada) >= 8:
+                cursor = conexion.cursor()
+                consulta = 'SELECT * FROM creditos_solicitados WHERE  API_SOL_ESTADO = 3'
+                # valores = (numero,)
+                cursor.execute(consulta)
+                resultados = cursor.fetchall()
+                print(len(resultados))
+                for row in resultados:
+                    print(row[2])
+                    cedula = row[2]
+                    fecha = row[6]
+                    celular = row[3]
+                    ID_UNICO = row[1]
+                    parametro = [cedula,fecha,celular,ID_UNICO]
+                    ruta_php = "C:/xampp/php/php.exe"
+                    ruta = "C:\\xampp\\htdocs\\credito_express_api\\credito.php"
+                    comando = [ruta_php, ruta] + parametro
+                    resultado = subprocess.run(comando, capture_output=True, text=True)
+                    print(resultado.stdout)
 
 
-            cursor.close()
-            conexion.close()
+                cursor.close()
+                conexion.close()
+            else:
+                print("hora no")
 
         except Error as e:
             print("Error de conexión:", e)
