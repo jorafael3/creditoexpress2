@@ -96,6 +96,7 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
             }
         });
     }
+
     function Validar_Codigo() {
         var codeInputs = document.querySelectorAll('.code-input');
         var valores = Array.from(codeInputs).map(function(input) {
@@ -142,13 +143,13 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
             }
             AjaxSendReceiveData(url_Validar_Cedula, param, function(x) {
                 console.log('x: ', x);
-                if (x[0] == 1) {
-                    $("#SECC_CRE").empty();
-                    $("#SECC_B").empty();
-                    $("#SECC_APR").append(x[3]);
-                } else {
-                    Mensaje(x[1], x[2], "error")
-                }
+                // if (x[0] == 1) {
+                //     $("#SECC_CRE").empty();
+                //     $("#SECC_B").empty();
+                //     $("#SECC_APR").append(x[3]);
+                // } else {
+                //     Mensaje(x[1], x[2], "error")
+                // }
             })
         }
     }

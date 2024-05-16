@@ -20,7 +20,7 @@ def run_csharp_file_with_parameter(parameter):
     # Ruta al archivo ejecutable de .NET Core
     dotnet_executable = "C:\\Program Files\\dotnet\\dotnet.exe"
     # Ruta al archivo C# que deseas ejecutar
-    csharp_file = "C:\\xampp\\htdocs\\creditoexpress2\\MyProject\\bin\\Debug\\net8.0\\MyProject.dll"
+    csharp_file = "C:\\xampp\\htdocs\\creditoexpress2\\MyProject\\bin\\Debug\\net6.0\\MyProject.dll"
     # Construye el comando para ejecutar el archivo C# con el parámetro
     command = [dotnet_executable, csharp_file, parameter]
     # Ejecuta el comando

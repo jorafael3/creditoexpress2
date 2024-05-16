@@ -361,6 +361,9 @@ class principalmodel extends Model
             $RUTA_ARCHIVO = trim($param["cedula"]) . "_" . date("YmdHis") . ".pdf";
             $tipo = $param["tipo"];
             $VAL_CONSULTA = $this->VALIDAR_CEDULA_ASOCIADA_OTRO_NUMERO($param);
+            $CEDULA_ = trim($param["cedula"]);
+            $celular = base64_decode(trim($param["celular"]));
+
             // echo json_encode([$VAL_CONSULTA]);
             // exit();
             if ($VAL_CONSULTA[0] == 1) {
@@ -374,13 +377,51 @@ class principalmodel extends Model
                     if ($DATOS_API_CEDULA[0] == 1) {
                         $GUARDAR_DATOS_API_REG = $this->GUARDAR_DATOS_API_REGISTRO($DATOS_API_CEDULA[1][0], $ID_UNICO_TRANSACCION);
                         if ($GUARDAR_DATOS_API_REG[0] == 1) {
-                            $DATOS_API_CREDITO = $this->DATOS_API_CREDITO($ID_UNICO_TRANSACCION);
-                            if ($DATOS_API_CREDITO[0] == 1) {
-                                $DATOS_CREDITO_ = $DATOS_API_CREDITO[1][0];
-                                $TIPO_CONSULTA = $tipo;
-                                $this->MOSTRAR_RESULTADO($DATOS_CREDITO_, $ID_UNICO_TRANSACCION, $TIPO_CONSULTA);
-                                // echo json_encode($DATOS_API_CREDITO);
-                                // exit();
+
+                            // $e = $this->encryptCedula("0931531115");
+                            // echo json_encode($e);
+                            // exit();
+                            $FECHA_NACIM = trim($DATOS_API_CEDULA[1][0]->FECHA_NACIM);
+                            $DATOS_CRE = $this->Obtener_Datos_Credito($CEDULA_, $FECHA_NACIM, $celular, $ID_UNICO_TRANSACCION);
+                            if ($DATOS_CRE[0] == 1) {
+                                $DATOS_API_CREDITO = $this->DATOS_API_CREDITO($ID_UNICO_TRANSACCION);
+                                if ($DATOS_API_CREDITO[0] == 1) {
+                                    $DATOS_CREDITO_ = $DATOS_API_CREDITO[1][0];
+                                    $TIPO_CONSULTA = $tipo;
+                                    $this->MOSTRAR_RESULTADO($DATOS_CREDITO_, $ID_UNICO_TRANSACCION, $TIPO_CONSULTA);
+                                    // echo json_encode($DATOS_API_CREDITO);
+                                    // exit();
+                                }
+                            } else if ($DATOS_CRE[0] == 2) {
+                                $_inci = array(
+                                    "ERROR_TYPE" => "API SOL 2",
+                                    "ERROR_CODE" => json_encode($DATOS_CRE[1]),
+                                    "ERROR_TEXT" => json_encode($DATOS_CRE[2]),
+                                );
+                                $INC = $this->INCIDENCIAS($_inci);
+                                $this->ELIMINAR_LINEA_ERROR($ID_UNICO_TRANSACCION);
+                                echo json_encode([0, "Error al realizar la consulta", "Por favor intentelo en un momento", "error", $DATOS_CRE]);
+                                exit();
+                            } else if ($DATOS_CRE[0] == 3) {
+                                $_inci = array(
+                                    "ERROR_TYPE" => "API SOL 3",
+                                    "ERROR_CODE" => json_encode($DATOS_CRE[1]),
+                                    "ERROR_TEXT" => json_encode($DATOS_CRE[2]),
+                                );
+                                $INC = $this->INCIDENCIAS($_inci);
+                                $this->ELIMINAR_LINEA_ERROR($ID_UNICO_TRANSACCION);
+                                echo json_encode([0, "Error al realizar la consulta", "Por favor intentelo en un momento", "error", $_inci]);
+                                exit();
+                            } else {
+                                $_inci = array(
+                                    "ERROR_TYPE" => "API SOL",
+                                    "ERROR_CODE" => $DATOS_CRE[1],
+                                    "ERROR_TEXT" => $DATOS_CRE[2] . "-" . $DATOS_CRE[3],
+                                );
+                                $INC = $this->INCIDENCIAS($_inci);
+                                $this->ELIMINAR_LINEA_ERROR($ID_UNICO_TRANSACCION);
+                                echo json_encode([0, "Error al realizar la consulta", "Por favor intentelo en un momento", "error", $DATOS_CRE]);
+                                exit();
                             }
                         } else {
                             $_inci = array(
@@ -398,6 +439,16 @@ class principalmodel extends Model
                             "ERROR_TYPE" => "ENCRIP",
                             "ERROR_CODE" => "",
                             "ERROR_TEXT" => "ERROR AL OBTENER CEDULA ENCRIPTADA",
+                        );
+                        $INC = $this->INCIDENCIAS($_inci);
+                        $this->ELIMINAR_LINEA_ERROR($ID_UNICO_TRANSACCION);
+                        echo json_encode([0, "Error al realizar la consulta", "Por favor intentelo en un momento", "error", $_inci]);
+                        exit();
+                    } else if ($DATOS_API_CEDULA[0] == 3) {
+                        $_inci = array(
+                            "ERROR_TYPE" => "ERROR API REG",
+                            "ERROR_CODE" => $DATOS_API_CEDULA[1] . "-" . $DATOS_API_CEDULA[2],
+                            "ERROR_TEXT" => "API NO TIENE RESPUESTA",
                         );
                         $INC = $this->INCIDENCIAS($_inci);
                         $this->ELIMINAR_LINEA_ERROR($ID_UNICO_TRANSACCION);
@@ -554,28 +605,45 @@ class principalmodel extends Model
         error_reporting($old_error_reporting & ~E_WARNING);
         // Realizar la solicitud
         // Restaurar el nivel de informe de errores original
-
+        
         try {
-            $url = 'https://consultadatosapi.azurewebsites.net/api/GetDataBasica?code=Hp37f_WfqrsgpDyl8rP9zM1y-JRSJTMB0p8xjQDSEDszAzFu7yW3XA==&id=' . $cedula_encr . '&emp=SALVACERO&subp=DATOSCEDULA';
+            $url = 'https://consultadatos-dataconsulting.ngrok.app/api/GetDataBasica?code=Hp37f_WfqrsgpDyl8rP9zM1y-JRSJTMB0p8xjQDSEDszAzFu7yW3XA==&id=' . $cedula_encr . '&emp=SALVACERO&subp=DATOSCEDULA';
+
+            // $url = 'https://consultadatosapi.azurewebsites.net/api/GetDataBasica?code=Hp37f_WfqrsgpDyl8rP9zM1y-JRSJTMB0p8xjQDSEDszAzFu7yW3XA==&id=' . $cedula_encr . '&emp=SALVACERO&subp=DATOSCEDULA';
             // $url = 'https://apidatoscedula20240216081841.azurewebsites.net/api/GetData?code=FXs4nBycLJmBacJWuk_olF_7thXybtYRFDDyaRGKbnphAzFuQulUlA==&id=' . $cedula_encr . '&emp=SALVACERO&subp=DATOSCEDULA';
             try {
+                // $curl = curl_init($url);
+                // curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                // $response = curl_exec($curl);
+
+
+
+
+
                 // Realizar la solicitud
                 $response = file_get_contents($url);
+                $http_status = substr($http_response_header[0], 9, 3);
+                // echo json_encode($http_status);
+                // exit();
                 error_reporting($old_error_reporting);
-                if ($response === false) {
-                    // $data = json_decode($response);
-                    return [2, []];
-                } else {
-                    $data = json_decode($response);
-                    if (isset($data->error)) {
-                        return [0, $data->error, $cedula_encr];
+                if ($http_status === "200") {
+                    if ($response === false) {
+                        // $data = json_decode($response);
+                        return [2, []];
                     } else {
-                        if (count(($data->DATOS)) > 0) {
-                            return [1, $data->DATOS];
+                        $data = json_decode($response);
+                        if (isset($data->error)) {
+                            return [0, $data->error, $cedula_encr];
                         } else {
-                            return [0, $data->DATOS];
+                            if (count(($data->DATOS)) > 0) {
+                                return [1, $data->DATOS];
+                            } else {
+                                return [0, $data->DATOS];
+                            }
                         }
                     }
+                } else {
+                    return [3, $http_status, $url];
                 }
             } catch (Exception $e) {
                 // Capturar y manejar la excepción
@@ -804,14 +872,6 @@ class principalmodel extends Model
         }
     }
 
-
-
-
-
-
-
-
-
     function encryptCedula($cedula)
     {
         // Contenido de la clave pública
@@ -852,39 +912,26 @@ class principalmodel extends Model
         // return ($encrypted);
     }
 
-    function Obtener_Datos_Credito($param, $param_DATOS, $val)
+    function Obtener_Datos_Credito($cedula, $fecha, $celular, $ID_UNICO)
     {
         try {
-            // $old_error_reporting = error_reporting();
-            // Desactivar los mensajes de advertencia
-            // error_reporting($old_error_reporting & ~E_WARNING);
-            if ($val == 1) {
-                $cedula = $param->CEDULA;
-                $nacimiento = $param->FECHA_NACIM;
-                $CELULAR = base64_decode($param_DATOS["celular"]);
-            } else {
-                $cedula = $param["CEDULA"];
-                $nacimiento = $param["FECHA_NACIM"];
-                $CELULAR = ($param_DATOS["celular"]);
-            }
+
+            $fecha_formateada = $fecha;
+            $ingresos = "500";
+            $Instruccion = "SECU";
+            $CELULAR = $celular;
 
 
+            $SEC = $this->Get_Secuencial_Api_Banco();
+            $SEC = intval($SEC[0]["valor"]) + 1;
+            $this->Update_Secuencial_Api_Banco($SEC);
 
-            // $cedula = "0930254909";
             $cedula_ECrip = $this->encryptCedula($cedula);
             if ($cedula_ECrip[0] == 0) {
                 return [0, $cedula_ECrip, [], []];
             } else {
                 $cedula_ECrip = $cedula_ECrip[1];
             }
-
-            $fecha = DateTime::createFromFormat('d/m/Y', $nacimiento);
-            $fecha_formateada = $fecha->format('Ymd');
-            $ingresos = "500";
-            $Instruccion = "SECU";
-
-            $SEC = $this->Get_Secuencial_Api_Banco();
-            $SEC = intval($SEC[0]["valor"]) + 1;
 
             $data = array(
                 "transaccion" => 4001,
@@ -939,10 +986,8 @@ class principalmodel extends Model
             $verboseLog = stream_get_contents($verbose);
             $response_array = json_decode($response, true);
 
-            $this->Update_Secuencial_Api_Banco($SEC);
 
-            // echo json_encode($response_array);
-            // exit();
+
             // if (extension_loaded('curl')) {
             //     echo "cURL está habilitado en este servidor.";
             // } else {
@@ -950,35 +995,16 @@ class principalmodel extends Model
             // }
 
             // Verificar si hay un error en la respuesta
-            if (isset($response_array['esError'])) {
-
-                $_inci = array(
-                    "ERROR_TYPE" => "API_SOL",
-                    "ERROR_CODE" => $response_array['codigo'],
-                    "ERROR_TEXT" => $response_array['esError'] . "-"
-                        . $response_array['descripcion'] . "-"
-                        . $response_array['idSesion'] . "-"
-                        . $response_array['secuencial'],
-                );
-                date_default_timezone_set('America/Guayaquil');
-                $hora_actual = date('G');
-
-                if ($response_array['esError'] == true) {
-                    if ($response_array['descripcion'] == "No tiene oferta") {
-                        $INC = $this->INCIDENCIAS($_inci);
-                        return [2, $response_array, $data, $INC];
-                    } else if ($response_array['descripcion'] == "Ha ocurrido un error" && $hora_actual >= 21) {
-                        $INC = $this->INCIDENCIAS($_inci);
-                        return [3, $response_array, $data, $INC, $hora_actual];
-                    }
-                } else {
-                    $INC = $this->INCIDENCIAS($_inci);
-                    return [1, $response_array, $data];
-                }
+            if ($response_array == "NULL") {
+                return [3, $response_array, $error];
             } else {
-                // $INC = $this->INCIDENCIAS($_inci);
-
-                return [0, $response_array, $data, $error, $verboseLog, extension_loaded('curl')];
+                if (isset($response_array['esError'])) {
+                    $GUARDAR = $this->Guardar_Datos_Banco($response_array, $ID_UNICO);
+                    return $GUARDAR;
+                } else {
+                    // $INC = $this->INCIDENCIAS($_inci);
+                    return [2, $response_array, $error, $data, $verboseLog, extension_loaded('curl')];
+                }
             }
         } catch (Exception $e) {
             // Captura la excepción y maneja el error
@@ -988,119 +1014,6 @@ class principalmodel extends Model
                 "ERROR_CODE" => "",
                 "ERROR_TEXT" => $e->getMessage(),
             );
-            $this->INCIDENCIAS($param);
-            return [0, "Error al procesar la solictud banco", $e->getMessage()];
-        }
-    }
-
-    function Obtener_Datos_Credito_($param, $param_DATOS, $val)
-    {
-        try {
-            if ($val == 1) {
-                $cedula = $param->CEDULA;
-                $nacimiento = $param->FECHA_NACIM;
-                $CELULAR = base64_decode($param_DATOS["celular"]);
-            } else {
-                $cedula = $param["CEDULA"];
-                $nacimiento = $param["FECHA_NACIM"];
-                $CELULAR = ($param_DATOS["celular"]);
-            }
-
-            $cedula_ECrip = $this->encryptCedula($cedula);
-            if ($cedula_ECrip[0] == 0) {
-                return [0, $cedula_ECrip, [], []];
-            } else {
-                $cedula_ECrip = $cedula_ECrip[1];
-            }
-
-            $fecha = DateTime::createFromFormat('d/m/Y', $nacimiento);
-            $fecha_formateada = $fecha->format('Ymd');
-            $ingresos = "1500";
-            $Instruccion = "SECU";
-
-            $SEC = $this->Get_Secuencial_Api_Banco();
-            $SEC = intval($SEC[0]["valor"]) + 1;
-
-            $data = array(
-                "transaccion" => 4001,
-                "idSession" => "1",
-                "secuencial" => $SEC,
-                "mensaje" => array(
-                    "IdCasaComercialProducto" => 8,
-                    "TipoIdentificacion" => "CED",
-                    "IdentificacionCliente" => $cedula_ECrip, // Encriptar la cédula
-                    "FechaNacimiento" => $fecha_formateada,
-                    "ValorIngreso" => $ingresos,
-                    "Instruccion" =>  $Instruccion,
-                    "Celular" =>  $CELULAR
-                )
-            );
-            $url = 'https://bs-autentica.com/cco/apiofertaccoqa1/api/CasasComerciales/GenerarCalificacionEnPuntaCasasComerciales';
-
-            $api_key = '0G4uZTt8yVlhd33qfCn5sazR5rDgolqH64kUYiVM5rcuQbOFhQEADhMRHqumswphGtHt1yhptsg0zyxWibbYmjJOOTstDwBfPjkeuh6RITv32fnY8UxhU9j5tiXFrgVz';
-
-            // Convertir datos a JSON
-            $data_string = json_encode($data);
-
-            // Configurar el contexto del flujo (stream context)
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'PUT',
-                    'header' => 'Content-Type: application/json' . "\r\n" .
-                        'Content-Length: ' . strlen($data_string) . "\r\n" .
-                        'ApiKeySuscripcion: ' . $api_key . "\r\n",
-                    'content' => $data_string
-                ],
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false
-                ]
-            ]);
-
-            // Realizar la solicitud HTTP utilizando file_get_contents
-            $response = file_get_contents($url, false, $context);
-            $error = error_get_last();
-            $error_message = $error['message'];
-            // Manejar la respuesta
-            $response_array = json_decode($response, true);
-            $verboseLog = ""; // En este caso, no hay información de verbose
-
-            $this->Update_Secuencial_Api_Banco($SEC);
-
-            if (isset($response_array['esError'])) {
-                $_inci = array(
-                    "ERROR_TYPE" => "API_SOL",
-                    "ERROR_CODE" => $response_array['codigo'],
-                    "ERROR_TEXT" => $response_array['esError'] . "-" .
-                        $response_array['descripcion'] . "-" .
-                        $response_array['idSesion'] . "-" .
-                        $response_array['secuencial'],
-                );
-                date_default_timezone_set('America/Guayaquil');
-                $hora_actual = date('G');
-
-                if ($response_array['esError'] == true) {
-                    if ($response_array['descripcion'] == "No tiene oferta") {
-                        $INC = $this->INCIDENCIAS($_inci);
-                        return [2, $response_array, $data, $INC];
-                    } elseif ($response_array['descripcion'] == "Ha ocurrido un error" && $hora_actual >= 21) {
-                        $INC = $this->INCIDENCIAS($_inci);
-                        return [3, $response_array, $data, $INC, $hora_actual];
-                    }
-                } else {
-                    $INC = $this->INCIDENCIAS($_inci);
-                    return [1, $response_array, $data];
-                }
-            } else {
-                return [0, $response_array, $data, $error_message, $verboseLog];
-            }
-        } catch (Exception $e) {
-            $param = array(
-                "ERROR_TYPE" => "API_SOL_FUNCTION",
-                "ERROR_CODE" => "",
-                "ERROR_TEXT" => $e->getMessage(),
-            );
-            $this->INCIDENCIAS($param);
             return [0, "Error al procesar la solictud banco", $e->getMessage()];
         }
     }
@@ -1125,6 +1038,7 @@ class principalmodel extends Model
 
     function Update_Secuencial_Api_Banco($SEC)
     {
+
         try {
             // sleep(4);
             // $cedula = trim($param["cedula"]);
@@ -1143,19 +1057,298 @@ class principalmodel extends Model
         }
     }
 
-    function ELiminar_Cedulas_No_existen($param)
+    function Guardar_Datos_Banco($VAL_CREDITO, $ID_UNICO)
     {
 
         try {
-            $cedula = trim($param["cedula"]);
-            $query = $this->db->connect_dobra()->prepare('UPDATE creditos_solicitados
-            set estado = 0
-            where cedula = :cedula
-            ');
-            $query->bindParam(":cedula", $cedula, PDO::PARAM_STR);
+            date_default_timezone_set('America/Guayaquil');
+
+            $DATOS_CREDITO = $VAL_CREDITO;
+            // echo json_encode($DATOS_CREDITO);
+            // exit();
+
+            $API_SOL_codigo = $DATOS_CREDITO["codigo"];
+            $API_SOL_descripcion = $DATOS_CREDITO["descripcion"];
+            $API_SOL_esError = $DATOS_CREDITO["esError"];
+            $API_SOL_idSesion = $DATOS_CREDITO["idSesion"];
+            $API_SOL_secuencial = $DATOS_CREDITO["secuencial"];
+            $API_SOL_ESTADO =  0; // ERROR DESCONOCIDO
+
+            if (isset($DATOS_CREDITO["mensaje"])) {
+                $API_SOL_campania = $DATOS_CREDITO["mensaje"]["campania"];
+                $API_SOL_identificacion = $DATOS_CREDITO["mensaje"]["identificacion"];
+                $API_SOL_lote = $DATOS_CREDITO["mensaje"]["lote"];
+                $API_SOL_montoMaximo = $DATOS_CREDITO["mensaje"]["montoMaximo"];
+                $API_SOL_nombreCampania = $DATOS_CREDITO["mensaje"]["nombreCampania"];
+                $API_SOL_plazoMaximo = $DATOS_CREDITO["mensaje"]["plazoMaximo"];
+                $API_SOL_promocion = $DATOS_CREDITO["mensaje"]["promocion"];
+                $API_SOL_segmentoRiesgo = $DATOS_CREDITO["mensaje"]["segmentoRiesgo"];
+                $API_SOL_subLote = $DATOS_CREDITO["mensaje"]["subLote"];
+                $credito_aprobado = floatval($DATOS_CREDITO["mensaje"]["montoMaximo"]) > 0 ? 1 : 0;
+                $credito_aprobado_texto = floatval($DATOS_CREDITO["mensaje"]["montoMaximo"]) > 0 ? "APROBADO" : "RECHAZADO";
+                $API_SOL_ESTADO =  1;
+
+                $sql = "UPDATE creditos_solicitados
+                SET
+    
+                    API_SOL_codigo = :API_SOL_codigo,
+                    API_SOL_descripcion =:API_SOL_descripcion,
+                    API_SOL_eserror = :API_SOL_eserror,
+                    API_SOL_idSesion =:API_SOL_idSesion,
+                    API_SOL_secuencial = :API_SOL_secuencial,
+    
+    
+                    API_SOL_campania =:API_SOL_campania,
+                    API_SOL_identificacion =:API_SOL_identificacion,
+                    API_SOL_lote =:API_SOL_lote,
+                    API_SOL_montoMaximo =:API_SOL_montoMaximo,
+                    API_SOL_nombreCampania =:API_SOL_nombreCampania,
+                    API_SOL_plazoMaximo =:API_SOL_plazoMaximo,
+                    API_SOL_promocion =:API_SOL_promocion,
+                    API_SOL_segmentoRiesgo =:API_SOL_segmentoRiesgo,
+                    API_SOL_subLote =:API_SOL_subLote,
+                    credito_aprobado = :credito_aprobado,
+                    credito_aprobado_texto = :credito_aprobado_texto,
+    
+                    API_SOL_ESTADO = :API_SOL_ESTADO,
+    
+                    EST_REGISTRO = 0
+                WHERE ID_UNICO = :ID_UNICO";
+            } else {
+                $hora_actual = date('G');
+
+                if ($DATOS_CREDITO['descripcion'] == "No tiene oferta") {
+                    $API_SOL_ESTADO =  2;
+                }
+                if ($DATOS_CREDITO['descripcion'] == "Ha ocurrido un error" && $hora_actual >= 21) {
+                    $API_SOL_ESTADO =  3;
+                }
+
+                $sql = "UPDATE creditos_solicitados
+                SET
+                    API_SOL_codigo = :API_SOL_codigo,
+                    API_SOL_descripcion =:API_SOL_descripcion,
+                    API_SOL_eserror = :API_SOL_eserror,
+                    API_SOL_idSesion =:API_SOL_idSesion,
+                    API_SOL_secuencial = :API_SOL_secuencial,
+                    API_SOL_ESTADO = :API_SOL_ESTADO,
+    
+                    EST_REGISTRO = 0
+                WHERE ID_UNICO = :ID_UNICO";
+            }
+            $query = $this->db->connect_dobra()->prepare($sql);
+            $query->bindParam(":API_SOL_codigo", $API_SOL_codigo, PDO::PARAM_STR);
+            $query->bindParam(":API_SOL_descripcion", $API_SOL_descripcion, PDO::PARAM_STR);
+            $query->bindParam(":API_SOL_eserror", $API_SOL_eserror, PDO::PARAM_STR);
+            $query->bindParam(":API_SOL_idSesion", $API_SOL_idSesion, PDO::PARAM_STR);
+            $query->bindParam(":API_SOL_secuencial", $API_SOL_secuencial, PDO::PARAM_STR);
+
+            $query->bindParam(":API_SOL_ESTADO", $API_SOL_ESTADO, PDO::PARAM_STR);
+
+            if ($API_SOL_esError == false) {
+                $query->bindParam(":API_SOL_campania", $API_SOL_campania, PDO::PARAM_STR);
+                $query->bindParam(":API_SOL_identificacion", $API_SOL_identificacion, PDO::PARAM_STR);
+                $query->bindParam(":API_SOL_lote", $API_SOL_lote, PDO::PARAM_STR);
+                $query->bindParam(":API_SOL_montoMaximo", $API_SOL_montoMaximo, PDO::PARAM_STR);
+                $query->bindParam(":API_SOL_nombreCampania", $API_SOL_nombreCampania, PDO::PARAM_STR);
+                $query->bindParam(":API_SOL_plazoMaximo", $API_SOL_plazoMaximo, PDO::PARAM_STR);
+                $query->bindParam(":API_SOL_promocion", $API_SOL_promocion, PDO::PARAM_STR);
+                $query->bindParam(":API_SOL_segmentoRiesgo", $API_SOL_segmentoRiesgo, PDO::PARAM_STR);
+                $query->bindParam(":API_SOL_subLote", $API_SOL_subLote, PDO::PARAM_STR);
+                $query->bindParam(":credito_aprobado", $credito_aprobado, PDO::PARAM_STR);
+                $query->bindParam(":credito_aprobado_texto", $credito_aprobado_texto, PDO::PARAM_STR);
+            }
+            $query->bindParam(":ID_UNICO", $ID_UNICO, PDO::PARAM_STR);
+
             if ($query->execute()) {
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                if ($API_SOL_ESTADO == 1) {
+                    $d = $this->Get_Email($ID_UNICO);
+                    if ($d != 0) {
+                        $this->ENVIAR_CORREO_CREDITO($credito_aprobado, $d);
+                    }
+                }
+                return ([1, "DATOS_API_GUARDARDOS", $ID_UNICO]);
+            } else {
+                $err = $query->errorInfo();
+                return ([0, "ERROR AL GUARDAR", $ID_UNICO, $err]);
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            echo json_encode([0, "ERROR AL GUARDAR", $e]);
+            exit();
+        }
+    }
+
+    function ENVIAR_CORREO_CREDITO($credito_aprobado, $datos)
+    {
+
+        try {
+
+            $email = $datos[0]["correo"];
+            $numero_salv = "093 989 7277";
+            $nombre_cliente = $datos[0]["nombre_cliente"];
+            $img = "C:\xampp\htdocs\credito_express_api\SV24-LogosLC_Credito.png";
+
+            if ($credito_aprobado == 1) {
+                $html = "  
+            <h1 style='text-align: center; color: #007bff;'>Felicidades!</h1>
+            <p style='text-align: justify;'>Estimado/a " . $nombre_cliente . ",</p>
+            <p style='text-align: justify;'>Nos complace informarte que tienes un <strong>crédito disponible</strong> con Salvacero.</p>
+            <p style='text-align: justify;'>Nuestro equipo está comprometido en brindarte el mejor servicio y apoyo en todo momento. Estamos listos para guiarte a través del proceso y responder a todas tus preguntas para que puedas acceder a los fondos que necesitas de manera rápida y sencilla.</p>
+            <p style='text-align: justify;'>Para obtener más información sobre tu crédito disponible y cómo puedes acceder a él, no dudes en ponerte en contacto con nosotros llamando al siguiente número: " . $numero_salv . ". Alternativamente, nuestro equipo se pondrá en contacto contigo para brindarte más detalles y asistencia.</p>
+            <p style='text-align: justify;'>¡Gracias por utilizar este servicio!</p>
+            <p style='text-align: justify;'>Saludos cordiales,<br>Equipo de Salvacero</p>";
+            } else {
+                $html = " 
+            <h1 style='text-align: center; color: #e74c3c;'>¡Lo sentimos!</h1>
+            <p style='text-align: justify;'>Estimado/a " . $nombre_cliente . ",</p>
+            <p style='text-align: justify;'>Lamentablemente, en este momento no tienes un crédito disponible con Salvacero.</p>
+            <p style='text-align: justify;'>No te desanimes, estamos aquí para ayudarte en todo lo que podamos. Si tienes alguna pregunta o necesitas asistencia adicional, no dudes en ponerte en contacto con nosotros. Nuestro equipo estará encantado de ayudarte en lo que necesites.</p>
+            <p style='text-align: justify;'>Te agradecemos por confiar en Salvacero y esperamos poder brindarte nuestro apoyo en el futuro.</p>
+            <p style='text-align: justify;'>Saludos cordiales,<br>Equipo de Salvacero</p>";
+            }
+
+            $msg = "
+            <!DOCTYPE html>
+            <html lang='es'>
+            <head>
+                <meta charset='UTF-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                <title>Correo Electrónico de Ejemplo</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        background-image: url('SV24-LogosLC_Credito.png');
+                        background-repeat: no-repeat;
+                        background-size: cover;
+                        padding: 20px;
+                    }
+                    .container {
+                        max-width: 600px;
+                        margin: 0 auto;
+                        background-color: #fff;
+                        padding: 20px;
+                        border-radius: 10px;
+                        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                    }
+                    h1 {
+                        text-align: center;
+                        color: #007bff;
+                    }
+                    p {
+                        text-align: justify;
+                    }
+                </style>
+            </head>
+            <body style='font-family: Arial, sans-serif; background-color: #2471A3; color: #333; padding: 20px;'>
+
+            <div style='max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);'>
+                <img src='https://salvacerohomecenter.com/img/cms/SV23%20-%20Logo%20Web_3.png' alt='Logo Salvacero' style='display: block; margin: 0 auto; max-width: 200px;'>
+                    " . $html . "
+            </div>
+
+            </body>
+            </html>
+            ";
+
+            $m = new PHPMailer(true);
+            $m->CharSet = 'UTF-8';
+            $m->isSMTP();
+            $m->SMTPAuth = true;
+            $m->Host = 'mail.creditoexpres.com';
+            $m->Username = 'info@creditoexpres.com';
+            // $m->Password = 'izfq lqiv kbrc etsx';
+            $m->Password = 'S@lvacero2024*';
+            $m->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $m->Port = 465;
+            $m->setFrom('info@creditoexpres.com', 'Credito Salvacero');
+            // $m->addAddress('jalvaradoe3@gmail.com');
+            $m->addAddress($email);
+            $m->isHTML(true);
+            $titulo = strtoupper('Estado del credito solicitado');
+            $m->Subject = $titulo;
+            $m->Body = $msg;
+            //$m->addAttachment($atta);
+            // $m->send();
+            if ($m->send()) {
+                // echo "<pre>";
+                // $mensaje = ("Correo enviado ");
+                // echo "</pre>";
+                // echo $mensaje;
                 return 1;
+            } else {
+                // echo "Ha ocurrido un error al enviar el correo electrónico.";
+                return 0;
+            }
+        } catch (Exception $e) {
+            $e = $e->getMessage();
+            return $e;
+        }
+    }
+
+    function Get_Email($ID_UNICO)
+    {
+
+        try {
+            $query = $this->db->connect_dobra()->prepare("SELECT ifnull(correo,'')as correo, nombre_cliente FROM creditos_solicitados
+        WHERE ID_UNICO = :ID_UNICO");
+            $query->bindParam(":ID_UNICO", $ID_UNICO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                if (count($result) > 0) {
+                    $co = $result[0]["correo"];
+                    if ($co == "") {
+                        return 0;
+                    } else {
+                        return $result;
+                    }
+                } else {
+                    return 0;
+                }
+            } else {
+                return 0;
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            return 0;
+        }
+    }
+
+
+
+    //********************* */
+    //***** INCIDENCIAS *****/
+    //********************* */
+
+    function INCIDENCIAS($param)
+    {
+        try {
+            $ERROR_TYPE = ($param["ERROR_TYPE"]);
+            $ERROR_CODE = json_encode($param["ERROR_CODE"]);
+            $ERROR_TEXT = json_encode($param["ERROR_TEXT"]);
+
+            $query = $this->db->connect_dobra()->prepare('INSERT INTO incidencias 
+            (
+                ERROR_TYPE, 
+                ERROR_CODE, 
+                ERROR_TEXT
+            ) 
+            VALUES
+            (
+                :ERROR_TYPE, 
+                :ERROR_CODE, 
+                :ERROR_TEXT
+            )
+            ');
+            $query->bindParam(":ERROR_TYPE", $ERROR_TYPE, PDO::PARAM_STR);
+            $query->bindParam(":ERROR_CODE", $ERROR_CODE, PDO::PARAM_STR);
+            $query->bindParam(":ERROR_TEXT", $ERROR_TEXT, PDO::PARAM_STR);
+
+            if ($query->execute()) {
+                // $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                $CORREO = $this->Enviar_correo_incidencias($param);
+                return [1];
             } else {
                 return 0;
             }
@@ -1166,25 +1359,45 @@ class principalmodel extends Model
         }
     }
 
-    function ELiminar_Cedulas_No_existen_2($param)
+    function Enviar_correo_incidencias($DATOS_INCIDENCIA)
     {
 
         try {
-            $cedula = trim($param["cedula"]);
-            $query = $this->db->connect_dobra()->prepare('DELETE FROM creditos_solicitados
-            where cedula = :cedula AND numero is null
-            ');
-            $query->bindParam(":cedula", $cedula, PDO::PARAM_STR);
-            if ($query->execute()) {
-                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+            $msg = "<div style='font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;'>";
+            $msg .= "<h1 style='text-align:center; color: #24448c;'>ERROR CREDITO EXPRESS INCIDENCIA</h1><br><br>";
+            $msg .= "<p>Fecha y hora de envío: " . date('d/m/Y H:i:s') . "</p>";
+            $msg .= "<p>ERROR_TYPE: " . $DATOS_INCIDENCIA["ERROR_TYPE"] . "</p>";
+            $msg .= "<p>ERROR_CODE: " . $DATOS_INCIDENCIA["ERROR_CODE"] . "</p>";
+            $msg .= "<p>ERROR_TEXT: " . $DATOS_INCIDENCIA["ERROR_TEXT"] . "</p>";
+            $msg .= "<div style='text-align:center;'>";
+            $msg .= "</div>";
+
+            $m = new PHPMailer(true);
+            $m->CharSet = 'UTF-8';
+            $m->isSMTP();
+            $m->SMTPAuth = true;
+            $m->Host = 'mail.creditoexpres.com';
+            $m->Username = 'info@creditoexpres.com';
+            // $m->Password = 'izfq lqiv kbrc etsx';
+            $m->Password = 'S@lvacero2024*';
+            $m->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $m->Port = 465;
+            $m->setFrom('info@creditoexpres.com', 'INCIDENCIAS');
+            $m->addAddress('jalvaradoe3@gmail.com');
+            // $m->addAddress($email);
+            $m->isHTML(true);
+            $titulo = strtoupper('INCIDENCIAS');
+            $m->Subject = $titulo;
+            $m->Body = $msg;
+
+            if ($m->send()) {
                 return 1;
             } else {
                 return 0;
             }
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             $e = $e->getMessage();
-            echo json_encode($e);
-            exit();
+            return $e;
         }
     }
 
@@ -1208,225 +1421,9 @@ class principalmodel extends Model
         }
     }
 
-    function Guardar_Datos_Banco($VAL_CEDULA, $VAL_CREDITO, $param, $val)
-    {
-
-        try {
-
-            // echo json_encode($VAL_CEDULA);
-            // exit();
-
-            $link = constant("URL") . "/public/img/SV24 - Mensajes LC_Proceso.png";
-            $RUTA_ARCHIVO = trim($param["cedula"]) . "_" . date("YmdHis") . ".pdf";
-            $DATOS_CREDITO = $VAL_CREDITO[1];
-
-            if ($val == 1) {
-                $DATOS_CEDULA = $VAL_CEDULA[1];
-                $cedula = trim($param["cedula"]);
-                $email = trim($param["email"]);
-                $celular = base64_decode(trim($param["celular"]));
-
-                $nombre = $DATOS_CEDULA[0]->NOMBRES;
-                $fecha_nacimiento = $DATOS_CEDULA[0]->FECHA_NACIM;
-                $codigo_dactilar = $DATOS_CEDULA[0]->INDIVIDUAL_DACTILAR;
-                $CANT_DOM = $DATOS_CEDULA[0]->CANT_DOM;
-            } else {
-                $DATOS_CEDULA = $VAL_CEDULA;
-
-                $cedula = trim($param["cedula"]);
-                $email = trim($param["email"]);
-                $celular = (trim($param["celular"]));
-
-                $nombre = $DATOS_CEDULA["NOMBRES"];
-                $fecha_nacimiento = $DATOS_CEDULA["FECHA_NACIM"];
-                $codigo_dactilar = $DATOS_CEDULA["INDIVIDUAL_DACTILAR"];
-                $CANT_DOM = $DATOS_CEDULA["CANT_DOM"];
-            }
-
-            $ip = $this->getRealIP();
-            $dispositivo = $_SERVER['HTTP_USER_AGENT'];
-
-            $credito_aprobado = floatval($DATOS_CREDITO["mensaje"]["montoMaximo"]) > 0 ? 1 : 0;
-            $credito_aprobado_texto = floatval($DATOS_CREDITO["mensaje"]["montoMaximo"]) > 0 ? "APROBADO" : "RECHAZADO";
-
-            $API_SOL_descripcion = $DATOS_CREDITO["descripcion"];
-            $API_SOL_campania = $DATOS_CREDITO["mensaje"]["campania"];
-            $API_SOL_identificacion = $DATOS_CREDITO["mensaje"]["identificacion"];
-            $API_SOL_lote = $DATOS_CREDITO["mensaje"]["lote"];
-            $API_SOL_montoMaximo = $DATOS_CREDITO["mensaje"]["montoMaximo"];
-            $API_SOL_nombreCampania = $DATOS_CREDITO["mensaje"]["nombreCampania"];
-            $API_SOL_plazoMaximo = $DATOS_CREDITO["mensaje"]["plazoMaximo"];
-            $API_SOL_promocion = $DATOS_CREDITO["mensaje"]["promocion"];
-            $API_SOL_segmentoRiesgo = $DATOS_CREDITO["mensaje"]["segmentoRiesgo"];
-            $API_SOL_subLote = $DATOS_CREDITO["mensaje"]["subLote"];
-            $API_SOL_idSesion = $DATOS_CREDITO["idSesion"];
-
-            // echo json_encode($DATOS_CREDITO);
-            // exit();
-
-            if ($val == 1) {
-                $sql = "UPDATE creditos_solicitados
-                SET
-                    numero = :numero, 
-                    correo = :correo,
-                    nombre_cliente = :nombre_cliente, 
-                    fecha_nacimiento = :fecha_nacimiento, 
-                    codigo_dactilar = :codigo_dactilar,
-                    ip = :ip,
-                    dispositivo = :dispositivo,
-                    ruta_archivo =:ruta_archivo,
-                    localidad =:localidad,
-    
-                    API_SOL_descripcion =:API_SOL_descripcion,
-                    API_SOL_campania =:API_SOL_campania,
-                    API_SOL_identificacion =:API_SOL_identificacion,
-                    API_SOL_lote =:API_SOL_lote,
-                    API_SOL_montoMaximo =:API_SOL_montoMaximo,
-                    API_SOL_nombreCampania =:API_SOL_nombreCampania,
-                    API_SOL_plazoMaximo =:API_SOL_plazoMaximo,
-                    API_SOL_promocion =:API_SOL_promocion,
-                    API_SOL_segmentoRiesgo =:API_SOL_segmentoRiesgo,
-                    API_SOL_subLote =:API_SOL_subLote,
-                    API_SOL_idSesion =:API_SOL_idSesion,
-                    credito_aprobado = :credito_aprobado,
-                    credito_aprobado_texto = :credito_aprobado_texto
-                WHERE cedula = :cedula";
-            } else {
-                $sql = "INSERT INTO creditos_solicitados 
-                (
-                    numero, 
-                    correo, 
-                    nombre_cliente, 
-                    fecha_nacimiento, 
-                    codigo_dactilar, 
-                    ip, 
-                    dispositivo, 
-                    ruta_archivo, 
-                    localidad, 
-                    API_SOL_descripcion, 
-                    API_SOL_campania, 
-                    API_SOL_identificacion, 
-                    API_SOL_lote, 
-                    API_SOL_montoMaximo, 
-                    API_SOL_nombreCampania, 
-                    API_SOL_plazoMaximo, 
-                    API_SOL_promocion, 
-                    API_SOL_segmentoRiesgo, 
-                    API_SOL_subLote, 
-                    API_SOL_idSesion, 
-                    credito_aprobado, 
-                    credito_aprobado_texto, 
-                    cedula
-                ) 
-                VALUES 
-                (
-                    :numero, 
-                    :correo, 
-                    :nombre_cliente, 
-                    :fecha_nacimiento, 
-                    :codigo_dactilar,
-                    :ip, 
-                    :dispositivo, 
-                    :ruta_archivo,
-                    :localidad, 
-                    :API_SOL_descripcion,
-                    :API_SOL_campania, 
-                    :API_SOL_identificacion, 
-                    :API_SOL_lote, 
-                    :API_SOL_montoMaximo, 
-                    :API_SOL_nombreCampania,
-                    :API_SOL_plazoMaximo,
-                    :API_SOL_promocion, 
-                    :API_SOL_segmentoRiesgo,
-                    :API_SOL_subLote, 
-                    :API_SOL_idSesion, 
-                    :credito_aprobado, 
-                    :credito_aprobado_texto, 
-                    :cedula
-                )";
-            }
 
 
 
-
-            $query = $this->db->connect_dobra()->prepare($sql);
-            $query->bindParam(":cedula", $cedula, PDO::PARAM_STR);
-            $query->bindParam(":numero", $celular, PDO::PARAM_STR);
-            $query->bindParam(":correo", $email, PDO::PARAM_STR);
-            $query->bindParam(":nombre_cliente", $nombre, PDO::PARAM_STR);
-            $query->bindParam(":fecha_nacimiento", $fecha_nacimiento, PDO::PARAM_STR);
-            $query->bindParam(":codigo_dactilar", $codigo_dactilar, PDO::PARAM_STR);
-            $query->bindParam(":ip", $ip, PDO::PARAM_STR);
-            $query->bindParam(":dispositivo", $dispositivo, PDO::PARAM_STR);
-            $query->bindParam(":ruta_archivo", $RUTA_ARCHIVO, PDO::PARAM_STR);
-            $query->bindParam(":localidad", $CANT_DOM, PDO::PARAM_STR);
-
-            $query->bindParam(":API_SOL_descripcion", $API_SOL_descripcion, PDO::PARAM_STR);
-            $query->bindParam(":API_SOL_campania", $API_SOL_campania, PDO::PARAM_STR);
-            $query->bindParam(":API_SOL_identificacion", $API_SOL_identificacion, PDO::PARAM_STR);
-            $query->bindParam(":API_SOL_lote", $API_SOL_lote, PDO::PARAM_STR);
-            $query->bindParam(":API_SOL_montoMaximo", $API_SOL_montoMaximo, PDO::PARAM_STR);
-            $query->bindParam(":API_SOL_nombreCampania", $API_SOL_nombreCampania, PDO::PARAM_STR);
-            $query->bindParam(":API_SOL_plazoMaximo", $API_SOL_plazoMaximo, PDO::PARAM_STR);
-            $query->bindParam(":API_SOL_promocion", $API_SOL_promocion, PDO::PARAM_STR);
-            $query->bindParam(":API_SOL_segmentoRiesgo", $API_SOL_segmentoRiesgo, PDO::PARAM_STR);
-            $query->bindParam(":API_SOL_subLote", $API_SOL_subLote, PDO::PARAM_STR);
-            $query->bindParam(":API_SOL_idSesion", $API_SOL_idSesion, PDO::PARAM_STR);
-            $query->bindParam(":credito_aprobado", $credito_aprobado, PDO::PARAM_STR);
-            $query->bindParam(":credito_aprobado_texto", $credito_aprobado_texto, PDO::PARAM_STR);
-            if ($query->execute()) {
-                $result = $query->fetchAll(PDO::FETCH_ASSOC);
-                $query_cant_con = $this->db->connect_dobra()->prepare("INSERT INTO cantidad_consultas
-                (
-                    numero,
-                    cantidad
-                )VALUES
-                (
-                    :numero,
-                    1
-                )");
-                $query_cant_con->bindParam(":numero", $celular, PDO::PARAM_STR);
-                $query_cant_con->execute();
-
-
-                if ($credito_aprobado == 1) {
-
-                    $html = '
-                <div class="text-center mt-3">
-                    <h1 style="font-size:60px" class="text-primary">Felicidades! </h1>
-                    <h2>Tienes credito disponible</h2>
-                    <img style="width: 100%;" src="' . $link . '" alt="">
-                </div>';
-                } else {
-                    $html = '  
-                <div class="text-center">
-                    <h1 class="text-danger">Lamentablemente el perfil con la cédula entregada no aplica para el crédito, no cumple con las políticas del banco.</h1>
-                    <h3><i class="bi bi-tv fs-1"></i> Mire el siguiente video ➡️ </h3>
-                    <a class="fs-3" href="https://youtu.be/EMaHXoCefic">https://youtu.be/EMaHXoCefic ��</a>
-                    <h3 class="mt-3">Le invitamos a llenar la siguiente encuesta ➡️ </h3>
-                    <a class="fs-3" href="https://forms.gle/s3GwuwoViF4Z2Jpt6">https://forms.gle/s3GwuwoViF4Z2Jpt6</a>
-                    <h3></h3>
-                </div>';
-                }
-                $this->Generar_Documento($RUTA_ARCHIVO, $nombre, $cedula);
-                if ($val == 1) {
-                    echo json_encode([1, $DATOS_CEDULA, $DATOS_CREDITO, $html]);
-                    exit();
-                } else {
-                    echo json_encode([2, $DATOS_CEDULA, $DATOS_CREDITO, $html]);
-                    exit();
-                }
-            } else {
-                $err = $query->errorInfo();
-                echo json_encode([0, "error al verificar información", "Intentelo de nuevo", $err]);
-                exit();
-            }
-        } catch (PDOException $e) {
-            $e = $e->getMessage();
-            echo json_encode([0, "No se pudo realizar la verificaciolln", "Intentelo de nuevo", $e]);
-            exit();
-        }
-    }
 
 
     function Generar_Documento($RUTA_ARCHIVO, $nombre, $cedula)
@@ -1563,7 +1560,6 @@ class principalmodel extends Model
 
         $pdf->Output($rutaCarpeta . $nombreArchivo, 'F');
     }
-
 
     function Generar_pdf($param)
     {
@@ -1720,164 +1716,6 @@ class principalmodel extends Model
             $e = $e->getMessage();
             echo json_encode($e);
             exit();
-        }
-    }
-
-
-    function INCIDENCIAS($param)
-    {
-        try {
-            $ERROR_TYPE = ($param["ERROR_TYPE"]);
-            $ERROR_CODE = json_encode($param["ERROR_CODE"]);
-            $ERROR_TEXT = json_encode($param["ERROR_TEXT"]);
-
-            $query = $this->db->connect_dobra()->prepare('INSERT INTO incidencias 
-            (
-                ERROR_TYPE, 
-                ERROR_CODE, 
-                ERROR_TEXT
-            ) 
-            VALUES
-            (
-                :ERROR_TYPE, 
-                :ERROR_CODE, 
-                :ERROR_TEXT
-            )
-            ');
-            $query->bindParam(":ERROR_TYPE", $ERROR_TYPE, PDO::PARAM_STR);
-            $query->bindParam(":ERROR_CODE", $ERROR_CODE, PDO::PARAM_STR);
-            $query->bindParam(":ERROR_TEXT", $ERROR_TEXT, PDO::PARAM_STR);
-
-            if ($query->execute()) {
-                // $result = $query->fetchAll(PDO::FETCH_ASSOC);
-                // $CORREO = $this->Enviar_correo_incidencias($param);
-                return [1];
-            } else {
-                return 0;
-            }
-        } catch (PDOException $e) {
-            $e = $e->getMessage();
-            echo json_encode($e);
-            exit();
-        }
-    }
-
-
-
-    function VALIDAR_CEDULA_G($CED)
-    {
-        try {
-
-
-            $query = $this->db->connect_dobra()->prepare('{CALL SGO_Consulta_ActualizacionDatos (?) }');
-            $query->bindParam(1, $CED, PDO::PARAM_STR);
-            if ($query->execute()) {
-                $result = $query->fetchAll(PDO::FETCH_ASSOC);
-                return $result;
-            } else {
-                $err = $query->errorInfo();
-                echo json_encode($err);
-                exit();
-            }
-        } catch (PDOException $e) {
-
-            $e = $e->getMessage();
-            echo json_encode($e);
-            exit();
-        }
-    }
-
-    function ENVIAR_CORREO_CREDITO($DATOS_INCIDENCIA)
-    {
-
-        try {
-            $msg = "<div style='font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;'>";
-            $msg .= "<h1 style='text-align:center; color: #24448c;'>Actualización de datos</h1><br><br>";
-            $msg .= "<p style='text-align: justify;'>ERROR CREDITO EXPRESS INCIDENCIA</p>";
-            $msg .= "<p>Fecha y hora de envío: " . date('d/m/Y H:i:s') . "</p>";
-            $msg .= "<p>ERROR_TYPE: " . $DATOS_INCIDENCIA["ERROR_TYPE"] . "</p>";
-            $msg .= "<p>ERROR_CODE: " . $DATOS_INCIDENCIA["ERROR_CODE"] . "</p>";
-            $msg .= "<p>ERROR_TEXT: " . $DATOS_INCIDENCIA["ERROR_TEXT"] . "</p>";
-            $msg .= "<div style='text-align:center;'>";
-            $msg .= "</div>";
-
-            $m = new PHPMailer(true);
-            $m->CharSet = 'UTF-8';
-            $m->isSMTP();
-            $m->SMTPAuth = true;
-            $m->Host = 'smtp.gmail.com';
-            $m->Username = 'jalvaradoe3@gmail.com';
-            $m->Password = 'izfq lqiv kbrc etsx';
-            $m->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $m->Port = 465;
-            $m->setFrom('jalvaradoe3@gmail.com', 'Credito express');
-            $m->addAddress('jalvaradoe3@gmail.com');
-            $m->isHTML(true);
-            $titulo = strtoupper('Credito express incidencia');
-            $m->Subject = $titulo;
-            $m->Body = $msg;
-            //$m->addAttachment($atta);
-            // $m->send();
-            if ($m->send()) {
-                // echo "<pre>";
-                // $mensaje = ("Correo enviado ");
-                // echo "</pre>";
-                // echo $mensaje;
-                return 1;
-            } else {
-                //echo "Ha ocurrido un error al enviar el correo electrónico.";
-                return 0;
-            }
-        } catch (Exception $e) {
-            $e = $e->getMessage();
-            return $e;
-        }
-    }
-
-    function Enviar_correo_incidencias($DATOS_INCIDENCIA)
-    {
-
-        try {
-            $msg = "<div style='font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;'>";
-            $msg .= "<h1 style='text-align:center; color: #24448c;'>Actualización de datos</h1><br><br>";
-            $msg .= "<p style='text-align: justify;'>ERROR CREDITO EXPRESS INCIDENCIA</p>";
-            $msg .= "<p>Fecha y hora de envío: " . date('d/m/Y H:i:s') . "</p>";
-            $msg .= "<p>ERROR_TYPE: " . $DATOS_INCIDENCIA["ERROR_TYPE"] . "</p>";
-            $msg .= "<p>ERROR_CODE: " . $DATOS_INCIDENCIA["ERROR_CODE"] . "</p>";
-            $msg .= "<p>ERROR_TEXT: " . $DATOS_INCIDENCIA["ERROR_TEXT"] . "</p>";
-            $msg .= "<div style='text-align:center;'>";
-            $msg .= "</div>";
-
-            $m = new PHPMailer(true);
-            $m->CharSet = 'UTF-8';
-            $m->isSMTP();
-            $m->SMTPAuth = true;
-            $m->Host = 'smtp.gmail.com';
-            $m->Username = 'jalvaradoe3@gmail.com';
-            $m->Password = 'izfq lqiv kbrc etsx';
-            $m->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $m->Port = 465;
-            $m->setFrom('jalvaradoe3@gmail.com', 'Credito express');
-            $m->addAddress('jalvaradoe3@gmail.com');
-            $m->isHTML(true);
-            $titulo = strtoupper('Credito express incidencia');
-            $m->Subject = $titulo;
-            $m->Body = $msg;
-            //$m->addAttachment($atta);
-            // $m->send();
-            if ($m->send()) {
-                // echo "<pre>";
-                // $mensaje = ("Correo enviado ");
-                // echo "</pre>";
-                // echo $mensaje;
-                return 1;
-            } else {
-                //echo "Ha ocurrido un error al enviar el correo electrónico.";
-                return 0;
-            }
-        } catch (Exception $e) {
-            $e = $e->getMessage();
-            return $e;
         }
     }
 
