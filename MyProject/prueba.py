@@ -100,9 +100,9 @@ def Cargar_Datos():
             print(len(resultados))
             for row in resultados:
                 print(row[0])
-                cedula_encr = run_csharp_file_with_parameter(row[0])
-                Guardar_encrypt(cedula_encr,row[0])
-                print(cedula_encr)
+                # cedula_encr = run_csharp_file_with_parameter(row[0])
+                # Guardar_encrypt(cedula_encr,row[0])
+                # print(cedula_encr)
             # Cerrar cursor y conexión
             cursor.close()
             conexion.close()
