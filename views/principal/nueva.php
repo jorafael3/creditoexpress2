@@ -194,6 +194,150 @@ require 'views/header.php';
         </div>
     </div>
 </div>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="app.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="container text-center">
+        <div class="row justify-content-md-center mt-5">
+            <div class="col-md-12">
+                <h2>
+                    � Como tomar foto desde el navegador Web usando JavaScript y PHP �
+                </h2>
+                <hr />
+            </div>
+            <img src="assets/imgs/sorpresa.gif" class="img-fluid" alt="sorpresa" style="width: 350px" />
+            <div class="col-md-12 center">
+                <video id="theVideo" autoplay muted></video>
+                <canvas id="theCanvas"></canvas>
+            </div>
+
+            <div class="d-grid gap-2 d-md-block">
+                <button class="btn btn-primary" id="btnCapture">Tomar foto</button>
+                <button class="btn btn-primary" id="btnDownloadImage">
+                    descargar imagen
+                </button>
+                <button class="btn btn-primary" id="btnSendImageToServer" disabled>
+                    guardar imagen
+                </button>
+                <button class="btn btn-primary" id="btnStartCamera">
+                    Iniciar camara
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <a href="fotos.php" target="_blank" id="bottomRightButton"> fotos </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</body>
+<script>
+    const videoWidth = 420;
+    const videoHeight = 320;
+    const videoTag = document.getElementById("theVideo");
+    const canvasTag = document.getElementById("theCanvas");
+    const btnCapture = document.getElementById("btnCapture");
+    const btnDownloadImage = document.getElementById("btnDownloadImage");
+    const btnSendImageToServer = document.getElementById("btnSendImageToServer");
+    const btnStartCamera = document.getElementById("btnStartCamera");
+
+    let cameraActive = false; // Variable para rastrear el estado de la cámara
+
+    // Establecer estado inicial de los botones
+    btnCapture.disabled = true;
+    btnDownloadImage.disabled = true;
+    btnSendImageToServer.disabled = true;
+
+    // Set video and canvas attributes
+    videoTag.setAttribute("width", videoWidth);
+    videoTag.setAttribute("height", videoHeight);
+    canvasTag.setAttribute("width", videoWidth);
+    canvasTag.setAttribute("height", videoHeight);
+
+    btnStartCamera.addEventListener("click", async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: false,
+                video: {
+                    width: videoWidth,
+                    height: videoHeight
+                },
+            });
+            videoTag.srcObject = stream;
+            btnStartCamera.disabled = true;
+
+            // Habilitar los botones cuando la cámara está activa
+            cameraActive = true;
+            btnCapture.disabled = false;
+        } catch (error) {
+            console.log("error", error);
+        }
+    });
+
+    // Capture button..
+    btnCapture.addEventListener("click", () => {
+        const canvasContext = canvasTag.getContext("2d");
+        canvasContext.drawImage(videoTag, 0, 0, videoWidth, videoHeight);
+        btnDownloadImage.disabled = false;
+        btnSendImageToServer.disabled = false;
+    });
+
+    /**
+     * Boton para forzar la descarga de la imagen
+     */
+    btnDownloadImage.addEventListener("click", () => {
+        const link = document.createElement("a");
+        link.download = "capturedImage.png";
+        link.href = canvasTag.toDataURL();
+        link.click();
+    });
+
+    /**
+     *Enviar imagen al serrvidor para se guardada
+     */
+    btnSendImageToServer.addEventListener("click", async () => {
+        const dataURL = canvasTag.toDataURL();
+        const blob = await dataURLtoBlob(dataURL);
+        const data = new FormData();
+        data.append("capturedImage", blob, "capturedImage.png");
+
+        try {
+            const response = await axios.post("upload.php", data, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                },
+            });
+            alert(response.data);
+        } catch (error) {
+            console.error("Error al enviar la imagen:", error);
+        }
+    });
+
+    async function dataURLtoBlob(dataURL) {
+        const arr = dataURL.split(",");
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        const n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        for (let i = 0; i < n; i++) {
+            u8arr[i] = bstr.charCodeAt(i);
+        }
+        return new Blob([u8arr], {
+            type: mime
+        });
+    }
+</script>
+
+</html>
 
 
 <div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">

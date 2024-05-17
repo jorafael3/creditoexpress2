@@ -12,6 +12,7 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
     var url_Validar_Cedula = '<?php echo $url_Validar_Cedula ?>';
 
     var TELEFONO;
+    var ID_UNICO;
 
     function Mensaje(t1, t2, ic) {
         Swal.fire(
@@ -76,13 +77,13 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
         let param = {
             celular: cel,
             terminos: terminos,
-            tipo:2
+            tipo: 2
         }
         AjaxSendReceiveData(url_Validar_Celular, param, function(x) {
             console.log('x: ', x);
-            
             if (x[0] == 1) {
                 TELEFONO = x[1];
+                ID_UNICO = x[3];
                 $("#SECC_COD").append(x[2]);
                 stepper.goNext();
                 var codeInputs = $('.code-input');
@@ -139,7 +140,7 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
                 cedula: Cedula,
                 celular: cel,
                 email: email,
-                tipo:1
+                tipo: 1
             }
             AjaxSendReceiveData(url_Validar_Cedula, param, function(x) {
                 console.log('x: ', x);

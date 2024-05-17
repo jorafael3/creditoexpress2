@@ -30,7 +30,8 @@ class principalmodel extends Model
             $terminos = $param["terminos"];
             $ip = $this->getRealIP();
             $dispositivo = $_SERVER['HTTP_USER_AGENT'];
-
+            $numero_aleatorio = mt_rand(10000, 99999);
+            $ID_UNICO = date("Ymdhms").$numero_aleatorio;
             $SI_CONSULTO = $this->Validar_si_consulto_credito($param);
             $SI_CONSULTO = 1;
 
@@ -64,6 +65,7 @@ class principalmodel extends Model
                     if ($query->execute()) {
                         $result = $query->fetchAll(PDO::FETCH_ASSOC);
                         $cel = base64_encode($celular);
+                        $ID_UNICO = base64_encode($ID_UNICO);
                         $codigo_temporal = "0000";
                         // $codigo_temporal = $this->Cargar_Codigo_Temporal($param);
                         $html = '
@@ -91,7 +93,7 @@ class principalmodel extends Model
                                             </div>
                                         </div>
                             </div>';
-                        echo json_encode([1, $celular, $html]);
+                        echo json_encode([1, $celular, $html,$ID_UNICO]);
                         exit();
                     } else {
                         $err = $query->errorInfo();
