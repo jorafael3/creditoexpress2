@@ -232,6 +232,7 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
             btnCapture.disabled = false;
         } catch (error) {
             console.log("error", error);
+            Mensaje("Error al iniciar la camara","Asegurese de dar permisos a la camara, o tener una conectada","error")
         }
     });
 
