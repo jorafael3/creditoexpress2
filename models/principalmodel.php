@@ -770,12 +770,13 @@ class principalmodel extends Model
     {
         try {
             $data = $datos["DATOS"][0];
-            // echo json_encode($DATOS);
-            // exit();
+            echo json_encode($datos);
+            exit();
             // Conectar a la base de datos
             // Definir los parámetros
             $id_unico = $ID_UNICO_TRANSACCION;
             $IMG = $datos["FOTOGRAFIA"][0]["Fotografia"];
+            $SIMILITUD = $datos["RECONOCIMIENTO"][0]["Similitud"];
 
             $fileName = $ID_UNICO_TRANSACCION . "_1.jpeg";
             $fileName2 = $ID_UNICO_TRANSACCION . "_2.jpeg";
@@ -792,7 +793,8 @@ class principalmodel extends Model
                 IMAGEN,
                 IMAGEN_NOMBRE,
                 IMAGEN_2,
-                IMAGEN_2_NOMBRE
+                IMAGEN_2_NOMBRE,
+                SIMILITUD
             ) VALUES (
                 :ID_UNICO, :CEDULA, :NOMBRES, :DES_SEXO, :DES_CIUDADANIA, :FECHA_NAC,
                 :PROV_NAC, :CANT_NAC, :PARR_NAC, :DES_NACIONALIDAD, :ESTADO_CIVIL,
@@ -803,7 +805,8 @@ class principalmodel extends Model
                 :IMAGEN,
                 :IMAGEN_NOMBRE,
                 :IMAGEN_2,
-                :IMAGEN_2_NOMBRE
+                :IMAGEN_2_NOMBRE,
+                :SIMILITUD
             )");
 
 
@@ -841,6 +844,7 @@ class principalmodel extends Model
             $query->bindParam(':IMAGEN_NOMBRE', $fileName, PDO::PARAM_STR);
             $query->bindParam(':IMAGEN_2', $IMAGEN, PDO::PARAM_STR);
             $query->bindParam(':IMAGEN_2_NOMBRE', $fileName2, PDO::PARAM_STR);
+            $query->bindParam(':SIMILITUD', $SIMILITUD, PDO::PARAM_STR);
 
             // Ejecutar la consulta
             if ($query->execute()) {
