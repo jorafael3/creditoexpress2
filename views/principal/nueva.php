@@ -130,7 +130,7 @@ require 'views/header.php';
 
                                     <div class="fv-row mb-5">
                                         <label class="form-label fw-bold fs-1">Ingresa tu número celular</label>
-                                        <h6 class="text-muted">Se enviará un código de verificación para validar el número</h6>
+                                        <h6 class="text-muted">Se enviará un código SMS para validar el número</h6>
                                         <input placeholder="xxxxxxxxxx" id="CELULAR" type="text" class="form-control form-control-solid" name="input1" placeholder="" value="" />
                                     </div>
                                     <div class="fv-row mb-5">
@@ -432,7 +432,7 @@ require 'views/header.php';
             <div class="modal-body">
 
                 <body>
-                    <h1>Requisitos para solicitud de préstamo</h1>
+                    <h1>Requisitos e Información del Crédito</h1>
                     <ul>
                         <li><strong>Edad:</strong> 21-63 años</li>
                         <li><strong>Documentos de identificación:</strong> Copia de cédula y certificado de votación.</li>
