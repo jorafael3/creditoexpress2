@@ -770,8 +770,8 @@ class principalmodel extends Model
     {
         try {
             $data = $datos["DATOS"][0];
-            echo json_encode($datos);
-            exit();
+            // echo json_encode($datos);
+            // exit();
             // Conectar a la base de datos
             // Definir los parámetros
             $id_unico = $ID_UNICO_TRANSACCION;
@@ -991,7 +991,7 @@ class principalmodel extends Model
     function DATOS_API_REGISTRO($ID_UNICO_TRANSACCION, $IMAGEN)
     {
         try {
-            set_time_limit(60);
+            set_time_limit(180);
             $start_time = microtime(true);
 
             // sleep(4);
@@ -1001,7 +1001,7 @@ class principalmodel extends Model
                 $current_time = microtime(true);
                 $elapsed_time = $current_time - $start_time;
                 // Verificar si el tiempo transcurrido excede el límite de tiempo máximo permitido (por ejemplo, 120 segundos)
-                if (round($elapsed_time, 0) >= 30) {
+                if (round($elapsed_time, 0) >= 180) {
                     return [2, "La consulta excedió el tiempo máximo permitido"];
                 }
                 // echo json_encode("Tiempo transcurrido: " . $elapsed_time . " segundos\n");
@@ -1140,7 +1140,7 @@ class principalmodel extends Model
                     <h1 style="font-size:60px" class="text-primary">Felicidades! </h1>
                     <h2>Tienes credito disponible</h2>
                     <img style="width: 100%;" src="' . $link . '" alt="">
-                    <button onclick="windows.location.reload()" class="btn btn-success">Realizar nueva consulta</button>
+                    <button onclick="window.location.reload()" class="btn btn-success">Realizar nueva consulta</button>
                 </div>';
             } else {
                 $html = '  
@@ -1151,7 +1151,7 @@ class principalmodel extends Model
                     <h3 class="mt-3">Le invitamos a llenar la siguiente encuesta ➡️ </h3>
                     <a class="fs-3" href="https://forms.gle/s3GwuwoViF4Z2Jpt6">https://forms.gle/s3GwuwoViF4Z2Jpt6</a>
                     <h3></h3>
-                    <button onclick="windows.location.reload()" class="btn btn-success">Realizar nueva consulta</button>
+                    <button onclick="window.location.reload()" class="btn btn-success">Realizar nueva consulta</button>
                 </div>';
             }
             echo json_encode([$TIPO_CONSULTA, [], $DATOS, $html]);
