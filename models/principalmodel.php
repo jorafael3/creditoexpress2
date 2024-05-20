@@ -855,14 +855,13 @@ class principalmodel extends Model
 
                 $permisos = 0777;
                 if (chmod($uploadDir, $permisos)) {
-                    
                 }
                 // Guardar la imagen en la carpeta
                 if (file_put_contents($filePath, $data)) {
-                } 
+                }
 
                 if (file_put_contents($filePath2, $dat2a)) {
-                } 
+                }
                 return [1, $uploadDir];
             } else {
                 $err = $query->errorInfo();
@@ -1644,7 +1643,6 @@ class principalmodel extends Model
     }
 
 
-
     //********************* */
     //***** INCIDENCIAS *****/
     //********************* */
@@ -1732,6 +1730,29 @@ class principalmodel extends Model
     function ELIMINAR_LINEA_ERROR($ID_UNICO)
     {
         try {
+            $query = $this->db->connect_dobra()->prepare('DELETE FROM Datos_Reconocimiento
+            where ID_UNICO = :ID_UNICO
+            ');
+            $query->bindParam(":ID_UNICO", $ID_UNICO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                // return 1;
+            } else {
+                //return 0;
+            }
+
+            $query = $this->db->connect_dobra()->prepare('DELETE FROM Datos_Empleo
+            where ID_UNICO = :ID_UNICO
+            ');
+            $query->bindParam(":ID_UNICO", $ID_UNICO, PDO::PARAM_STR);
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                // return 1;
+            } else {
+                //return 0;
+            }
+
+
             $query = $this->db->connect_dobra()->prepare('DELETE FROM creditos_solicitados
             where ID_UNICO = :ID_UNICO
             ');
