@@ -33,7 +33,7 @@ class principalmodel extends Model
             $numero_aleatorio = mt_rand(10000, 99999);
             // $ID_UNICO = date("Ymdhms").$numero_aleatorio;
             $SI_CONSULTO = $this->Validar_si_consulto_credito($param);
-            $SI_CONSULTO = 1;
+            // $SI_CONSULTO = 1;
 
             if ($SI_CONSULTO == 1) {
                 $this->Anular_Codigos($param);
