@@ -119,10 +119,15 @@ require 'views/header.php';
                         </div>
 
                     </div>
-                    <form class="form mx-auto" novalidate="novalidate" id="kt_stepper_example_basic_form">
+                    <div class="form mx-auto" novalidate="novalidate" id="kt_stepper_example_basic_form">
                         <div class="mb-5">
                             <div class="flex-column current" data-kt-stepper-element="content">
                                 <div id="SECC_CEL">
+
+
+
+
+
                                     <div class="fv-row mb-5">
                                         <label class="form-label fw-bold fs-1">Ingresa tu número celular</label>
                                         <h6 class="text-muted">Se enviará un código de verificación para validar el número</h6>
@@ -157,6 +162,45 @@ require 'views/header.php';
                                 </div>
                             </div>
                             <div class="flex-column" data-kt-stepper-element="content">
+                                <div id="SECCION_FOTO" class="">
+                                    <div class="container text-center">
+                                        <div class="row justify-content-md-center mt-5">
+                                            <div class="col-md-12">
+                                                <h2>
+                                                    Nesecitamos una foto tuya para validar tu identidad,
+                                                </h2>
+                                                <h4>Por favor toma la foto lo mas centrada posible</h4>
+                                                <hr />
+                                            </div>
+                                            <div id="SECC_VECTOR">
+                                                <img src="https://media.istockphoto.com/id/1347646440/vector/face-id-scanning-face-line-icon-face-recognition.jpg?s=612x612&w=0&k=20&c=KfNgCAv1BmAHLZjfVMRrL_bFDxIQpScZFRJtzMhwzgw=" class="img-fluid" alt="sorpresa" style="width: 350px" />
+                                            </div>
+                        
+                                            <div class="col-md-12 d-none" id="CANVAS_CAMARA">
+                                                <video id="theVideo" autoplay muted></video>
+                                                <canvas id="theCanvas" class="d-none"></canvas>
+                                                <canvas id="theCanvas2" class="d-none"></canvas>
+                                            </div>
+                                            <div class="d-grid gap-2 d-md-block">
+                                                <button class="btn btn-primary" id="btnCapture">
+                                                    <i class="bi bi-camera"></i> Tomar foto
+                                                </button>
+                                                <button class="btn btn-primary d-none" id="btnDownloadImage">
+                                                    descargar imagen
+                                                </button>
+                                                <button class="btn btn-primary d-none" id="btnSendImageToServer" disabled>
+                                                    guardar imagen
+                                                </button>
+                                                <button class="btn btn-primary" id="btnStartCamera">
+                                                    <i class="bi bi-camera"></i> Iniciar camara
+                                                </button>
+                                                <button class="btn btn-success" id="btnIrDatos">
+                                                    Continuar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div id="SECC_CRE">
 
 
@@ -173,7 +217,7 @@ require 'views/header.php';
                                     Regresar
                                 </button> -->
                             </div>
-                            <div id="SECC_B">
+                            <div id="SECC_B" class="">
                                 <button onclick="Verificar()" type="button" class="btn btn-success fs-3 fw-bold" data-kt-stepper-action="submit">
                                     <span class="indicator-label">
                                         Verificar
@@ -188,7 +232,7 @@ require 'views/header.php';
                                 </button>
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -207,134 +251,15 @@ require 'views/header.php';
 </head>
 
 <body>
-    <div class="container text-center">
-        <div class="row justify-content-md-center mt-5">
-            <div class="col-md-12">
-                <h2>
-                    � Como tomar foto desde el navegador Web usando JavaScript y PHP �
-                </h2>
-                <hr />
-            </div>
-            <img src="assets/imgs/sorpresa.gif" class="img-fluid" alt="sorpresa" style="width: 350px" />
-            <div class="col-md-12 center">
-                <video id="theVideo" autoplay muted></video>
-                <canvas id="theCanvas"></canvas>
-            </div>
 
-            <div class="d-grid gap-2 d-md-block">
-                <button class="btn btn-primary" id="btnCapture">Tomar foto</button>
-                <button class="btn btn-primary" id="btnDownloadImage">
-                    descargar imagen
-                </button>
-                <button class="btn btn-primary" id="btnSendImageToServer" disabled>
-                    guardar imagen
-                </button>
-                <button class="btn btn-primary" id="btnStartCamera">
-                    Iniciar camara
-                </button>
-            </div>
-        </div>
-    </div>
+
+
 
     <a href="fotos.php" target="_blank" id="bottomRightButton"> fotos </a>
 
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </body>
 <script>
-    const videoWidth = 420;
-    const videoHeight = 320;
-    const videoTag = document.getElementById("theVideo");
-    const canvasTag = document.getElementById("theCanvas");
-    const btnCapture = document.getElementById("btnCapture");
-    const btnDownloadImage = document.getElementById("btnDownloadImage");
-    const btnSendImageToServer = document.getElementById("btnSendImageToServer");
-    const btnStartCamera = document.getElementById("btnStartCamera");
 
-    let cameraActive = false; // Variable para rastrear el estado de la cámara
-
-    // Establecer estado inicial de los botones
-    btnCapture.disabled = true;
-    btnDownloadImage.disabled = true;
-    btnSendImageToServer.disabled = true;
-
-    // Set video and canvas attributes
-    videoTag.setAttribute("width", videoWidth);
-    videoTag.setAttribute("height", videoHeight);
-    canvasTag.setAttribute("width", videoWidth);
-    canvasTag.setAttribute("height", videoHeight);
-
-    btnStartCamera.addEventListener("click", async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                audio: false,
-                video: {
-                    width: videoWidth,
-                    height: videoHeight
-                },
-            });
-            videoTag.srcObject = stream;
-            btnStartCamera.disabled = true;
-
-            // Habilitar los botones cuando la cámara está activa
-            cameraActive = true;
-            btnCapture.disabled = false;
-        } catch (error) {
-            console.log("error", error);
-        }
-    });
-
-    // Capture button..
-    btnCapture.addEventListener("click", () => {
-        const canvasContext = canvasTag.getContext("2d");
-        canvasContext.drawImage(videoTag, 0, 0, videoWidth, videoHeight);
-        btnDownloadImage.disabled = false;
-        btnSendImageToServer.disabled = false;
-    });
-
-    /**
-     * Boton para forzar la descarga de la imagen
-     */
-    btnDownloadImage.addEventListener("click", () => {
-        const link = document.createElement("a");
-        link.download = "capturedImage.png";
-        link.href = canvasTag.toDataURL();
-        link.click();
-    });
-
-    /**
-     *Enviar imagen al serrvidor para se guardada
-     */
-    btnSendImageToServer.addEventListener("click", async () => {
-        const dataURL = canvasTag.toDataURL();
-        const blob = await dataURLtoBlob(dataURL);
-        const data = new FormData();
-        data.append("capturedImage", blob, "capturedImage.png");
-
-        try {
-            const response = await axios.post("upload.php", data, {
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                },
-            });
-            alert(response.data);
-        } catch (error) {
-            console.error("Error al enviar la imagen:", error);
-        }
-    });
-
-    async function dataURLtoBlob(dataURL) {
-        const arr = dataURL.split(",");
-        const mime = arr[0].match(/:(.*?);/)[1];
-        const bstr = atob(arr[1]);
-        const n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        for (let i = 0; i < n; i++) {
-            u8arr[i] = bstr.charCodeAt(i);
-        }
-        return new Blob([u8arr], {
-            type: mime
-        });
-    }
 </script>
 
 </html>

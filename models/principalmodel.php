@@ -31,7 +31,7 @@ class principalmodel extends Model
             $ip = $this->getRealIP();
             $dispositivo = $_SERVER['HTTP_USER_AGENT'];
             $numero_aleatorio = mt_rand(10000, 99999);
-            $ID_UNICO = date("Ymdhms").$numero_aleatorio;
+            // $ID_UNICO = date("Ymdhms").$numero_aleatorio;
             $SI_CONSULTO = $this->Validar_si_consulto_credito($param);
             $SI_CONSULTO = 1;
 
@@ -65,7 +65,7 @@ class principalmodel extends Model
                     if ($query->execute()) {
                         $result = $query->fetchAll(PDO::FETCH_ASSOC);
                         $cel = base64_encode($celular);
-                        $ID_UNICO = base64_encode($ID_UNICO);
+                        // $ID_UNICO = base64_encode($ID_UNICO);
                         $codigo_temporal = "0000";
                         // $codigo_temporal = $this->Cargar_Codigo_Temporal($param);
                         $html = '
@@ -93,7 +93,7 @@ class principalmodel extends Model
                                             </div>
                                         </div>
                             </div>';
-                        echo json_encode([1, $celular, $html,$ID_UNICO]);
+                        echo json_encode([1, $celular, $html]);
                         exit();
                     } else {
                         $err = $query->errorInfo();
@@ -306,27 +306,31 @@ class principalmodel extends Model
                 $result = $query->fetchAll(PDO::FETCH_ASSOC);
                 $cel = base64_encode($celular);
                 $html = '
-                <div class="fv-row mb-10">
-                    <label class="form-label d-flex align-items-center">
-                            <span class="required fw-bold fs-2">Cédula</span>
-                        </label>
-                        <input type="hidden" id="CEL" value="' . $cel . '">
-                        <input placeholder="xxxxxxxxxx" id="CEDULA" type="text" class="form-control form-control-solid" name="input1" placeholder="" value="" />
-                    </div>
-                    <div class="fv-row mb-10">
-                        <label class="form-label d-flex align-items-center">
-                            <span class="fw-bold fs-2">Número de teléfono</span><br>
-                        </label>
-                        <h6 class="text-muted">Ten en cuenta que este número se asociará a la cédula que ingrese para proximas consultas</h6>
-                        <input readonly id="" type="text" class="form-control form-control-solid" name="input1" value="' . $celular . '" />
-                    </div>
-                    <div class="fv-row mb-10">
-                        <label class="form-label d-flex align-items-center">
-                            <span class="fw-bold fs-2">Correo </span>
-                            <span class="text-muted fw-bold fs-5">(opcional)</span>
-                        </label>
-                        <h6 class="text-muted">Aquí tambien enviaremos el resultado de tu consulta</h6>
-                        <input placeholder="xxxxxxx@mail.com" id="CORREO" type="text" class="form-control form-control-solid" name="input1" placeholder="" value="" />
+             
+                    <div id="SECCION_INGRESO_DATOS" class="d-none">
+                        <div class="fv-row mb-10">
+                    
+                            <label class="form-label d-flex align-items-center">
+                                <span class="required fw-bold fs-2">Cédula</span>
+                            </label>
+                            <input type="hidden" id="CEL" value="' . $cel . '">
+                            <input placeholder="xxxxxxxxxx" id="CEDULA" type="text" class="form-control form-control-solid" name="input1" placeholder="" value="" />
+                        </div>
+                        <div class="fv-row mb-10">
+                            <label class="form-label d-flex align-items-center">
+                                <span class="fw-bold fs-2">Número de teléfono</span><br>
+                            </label>
+                            <h6 class="text-muted">Ten en cuenta que este número se asociará a la cédula que ingrese para proximas consultas</h6>
+                            <input readonly id="" type="text" class="form-control form-control-solid" name="input1" value="' . $celular . '" />
+                        </div>
+                        <div class="fv-row mb-10">
+                            <label class="form-label d-flex align-items-center">
+                                <span class="fw-bold fs-2">Correo </span>
+                                <span class="text-muted fw-bold fs-5">(opcional)</span>
+                            </label>
+                            <h6 class="text-muted">Aquí tambien enviaremos el resultado de tu consulta</h6>
+                            <input placeholder="xxxxxxx@mail.com" id="CORREO" type="text" class="form-control form-control-solid" name="input1" placeholder="" value="" />
+                        </div>
                     </div>
                 ';
                 if (count($result) > 0) {
@@ -365,7 +369,9 @@ class principalmodel extends Model
             $VAL_CONSULTA = $this->VALIDAR_CEDULA_ASOCIADA_OTRO_NUMERO($param);
             $CEDULA_ = trim($param["cedula"]);
             $celular = base64_decode(trim($param["celular"]));
-
+            $SMS = $param["tipo"];
+            $IMAGEN = explode("base64,", $param["IMAGEN"]);
+            $IMAGEN = $IMAGEN[1];
             // echo json_encode([$VAL_CONSULTA]);
             // exit();
             if ($VAL_CONSULTA[0] == 1) {
@@ -375,14 +381,12 @@ class principalmodel extends Model
                 // exit();
                 if ($VAL_CEDULA_[0] == 1) {
                     $ID_UNICO_TRANSACCION = $VAL_CEDULA_[2];
-                    $DATOS_API_CEDULA = $this->DATOS_API_REGISTRO($ID_UNICO_TRANSACCION);
+                    $DATOS_API_CEDULA = $this->DATOS_API_REGISTRO($ID_UNICO_TRANSACCION, $IMAGEN);
+                    // echo json_encode($DATOS_API_CEDULA);
+                    // exit();
                     if ($DATOS_API_CEDULA[0] == 1) {
                         $GUARDAR_DATOS_API_REG = $this->GUARDAR_DATOS_API_REGISTRO($DATOS_API_CEDULA[1][0], $ID_UNICO_TRANSACCION);
                         if ($GUARDAR_DATOS_API_REG[0] == 1) {
-
-                            // $e = $this->encryptCedula("0931531115");
-                            // echo json_encode($e);
-                            // exit();
                             $FECHA_NACIM = trim($DATOS_API_CEDULA[1][0]->FECHA_NACIM);
                             $DATOS_CRE = $this->Obtener_Datos_Credito($CEDULA_, $FECHA_NACIM, $celular, $ID_UNICO_TRANSACCION);
                             if ($DATOS_CRE[0] == 1) {
@@ -599,7 +603,51 @@ class principalmodel extends Model
     //******************************************** */
     //** OBTIENE DATOS API REGISTRO */
 
-    function CONSULTA_API_REG($cedula_encr)
+    function CONSULTA_API_REG($cedula_encr, $ID_UNICO_TRANSACCION, $IMAGEN)
+    {
+
+        $CONSULTA_API_REG_BIO = $this->CONSULTA_API_REG_BIO($cedula_encr, $IMAGEN);
+        if ($CONSULTA_API_REG_BIO[0] == 1) {
+            $ERROR_FOTO = isset($CONSULTA_API_REG_BIO[1]["RECONOCIMIENTO"][0]["Error"]);
+            if ($ERROR_FOTO == "No") {
+                $SIMILITUD = $CONSULTA_API_REG_BIO[1]["RECONOCIMIENTO"][0]["Similitud"];
+                if ($SIMILITUD >= 50) {
+
+                    $GUARDAR_DATOS_API_REG_BIO = $this->GUARDAR_DATOS_API_REG_BIO($ID_UNICO_TRANSACCION, $CONSULTA_API_REG_BIO[1], $IMAGEN);
+                    if ($GUARDAR_DATOS_API_REG_BIO[0] == 1) {
+                        $CONSULTA_API_REG_DEMOGRAFICO = $this->CONSULTA_API_REG_DEMOGRAFICO($cedula_encr);
+                        if ($CONSULTA_API_REG_DEMOGRAFICO[0] == 1) {
+
+                            $GUARDAR_DATOS_API_REG_DEMOGRAFICO = $this->GUARDAR_DATOS_API_REG_DEMOGRAFICO($ID_UNICO_TRANSACCION, $CONSULTA_API_REG_DEMOGRAFICO[1]);
+                            if ($GUARDAR_DATOS_API_REG_DEMOGRAFICO[0] == 1) {
+                                $CONSULTA_API_REG_SENCILLA = $this->CONSULTA_API_REG_SENCILLA($cedula_encr);
+                                return $CONSULTA_API_REG_SENCILLA;
+                            } else {
+                                return [0, "Error al procesar la informacion, intentelo de nuevo", $GUARDAR_DATOS_API_REG_DEMOGRAFICO];
+                            }
+                        } else {
+                            return [0, "Error al procesar la informacion, intentelo de nuevo", $CONSULTA_API_REG_DEMOGRAFICO];
+                        }
+                    } else {
+                        return [0, "Error al procesar la informacion, intentelo de nuevo", $GUARDAR_DATOS_API_REG_BIO];
+                    }
+                } else {
+                    $this->ELIMINAR_LINEA_ERROR($ID_UNICO_TRANSACCION);
+                    return [2, "La foto no es valida, por favor tomela nuevamente"];
+                }
+            } else {
+                $this->ELIMINAR_LINEA_ERROR($ID_UNICO_TRANSACCION);
+                return [2, "Error al procesar la informacion, la foto no es valida", $CONSULTA_API_REG_BIO, $ERROR_FOTO];
+            }
+        } else {
+            return [0, "Error al procesar la informacion, intentelo de nuevo", $CONSULTA_API_REG_BIO];
+        }
+
+
+        // return $SIMILITUD;
+    }
+
+    function CONSULTA_API_REG_SENCILLA($cedula_encr)
     {
         // $cedula_encr = "yt3TIGS4cvQQt3+q6iQ2InVubHr4hm4V7cxn1V3jFC0=";
         $old_error_reporting = error_reporting();
@@ -607,7 +655,7 @@ class principalmodel extends Model
         error_reporting($old_error_reporting & ~E_WARNING);
         // Realizar la solicitud
         // Restaurar el nivel de informe de errores original
-        
+
         try {
             $url = 'https://consultadatos-dataconsulting.ngrok.app/api/GetDataBasica?code=Hp37f_WfqrsgpDyl8rP9zM1y-JRSJTMB0p8xjQDSEDszAzFu7yW3XA==&id=' . $cedula_encr . '&emp=SALVACERO&subp=DATOSCEDULA';
 
@@ -659,7 +707,285 @@ class principalmodel extends Model
         }
     }
 
-    function DATOS_API_REGISTRO($ID_UNICO_TRANSACCION)
+    ///*************** API RECONOCIMIENTO ***************************************/
+
+    function CONSULTA_API_REG_BIO($cedula_encr, $imagen)
+    {
+        // $cedula_encr = "yt3TIGS4cvQQt3+q6iQ2InVubHr4hm4V7cxn1V3jFC0=";
+        $old_error_reporting = error_reporting();
+        // Desactivar los mensajes de advertencia
+        error_reporting($old_error_reporting & ~E_WARNING);
+        // Realizar la solicitud
+        // Restaurar el nivel de informe de errores original
+
+        try {
+
+            $url = "https://reconocimiento-dataconsulting.ngrok.app/api/Reconocimiento?code=1LbmHAOC5xcBDW2Lw2eZrGDSQ-9nmBMFZ_sqbHHd7TVaAzFutMbWVQ==";
+
+            // Datos a enviar en la solicitud POST
+            $data = [
+                "id" => $cedula_encr,
+                "emp" => "SALVACERO",
+                "selfie" => $imagen,
+            ];
+
+            // Codificar los datos en formato JSON
+            $jsonData = json_encode($data);
+
+            // Inicializar cURL
+            $ch = curl_init($url);
+
+            // Configurar opciones de cURL
+            // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Recibir la respuesta como una cadena de texto
+            curl_setopt($ch, CURLOPT_POST, true); // Enviar una solicitud POST
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData); // Datos a enviar en la solicitud POST
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($jsonData),
+                'apiKey: DNkAgQHRnuMIwJFY3pVCrwDtmyuJajmQEMlE' // Agregar la API key en el encabezado
+            ]);
+
+            // Ejecutar la solicitud
+            $response = curl_exec($ch);
+
+            // Manejar errores
+            if (curl_errno($ch)) {
+                // echo 'Error:' . curl_error($ch);
+                return [0, curl_error($ch)];
+            } else {
+                $data = json_decode($response, true);
+                return [1, $data];
+            }
+            // Cerrar cURL
+            curl_close($ch);
+        } catch (Exception $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function GUARDAR_DATOS_API_REG_BIO($ID_UNICO_TRANSACCION, $datos, $IMAGEN)
+    {
+        try {
+            $data = $datos["DATOS"][0];
+            // echo json_encode($DATOS);
+            // exit();
+            // Conectar a la base de datos
+            // Definir los parámetros
+            $id_unico = $ID_UNICO_TRANSACCION;
+            $IMG = $datos["FOTOGRAFIA"][0]["Fotografia"];
+
+            $fileName = $ID_UNICO_TRANSACCION . "_1.jpeg";
+            $fileName2 = $ID_UNICO_TRANSACCION . "_2.jpeg";
+
+
+            // Preparar la consulta
+            $query = $this->db->connect_dobra()->prepare("INSERT INTO Datos_Reconocimiento(
+                ID_UNICO, CEDULA, NOMBRES, DES_SEXO, DES_CIUDADANIA, FECHA_NACIM,
+                PROV_NAC, CANT_NAC, PARR_NAC, DES_NACIONALIDAD, ESTADO_CIVIL,
+                DES_NIV_ESTUD, DES_PROFESION, NOMBRE_CONYUG, CEDULA_CONYUG,
+                FECHA_MATRIM, LUG_MATRIM, NOM_PADRE, NAC_PADRE, CED_PADRE,
+                NOM_MADRE, NAC_MADRE, CED_MADRE, FECHA_DEFUNC, PROV_DOM,
+                CANT_DOM, PARR_DOM, DIRECCION, INDIVIDUAL_DACTILAR,
+                IMAGEN,
+                IMAGEN_NOMBRE,
+                IMAGEN_2,
+                IMAGEN_2_NOMBRE
+            ) VALUES (
+                :ID_UNICO, :CEDULA, :NOMBRES, :DES_SEXO, :DES_CIUDADANIA, :FECHA_NAC,
+                :PROV_NAC, :CANT_NAC, :PARR_NAC, :DES_NACIONALIDAD, :ESTADO_CIVIL,
+                :DES_NIV_ESTUD, :DES_PROFESION, :NOMBRE_CONYUG, :CEDULA_CONYUG,
+                :FECHA_MATRIM, :LUG_MATRIM, :NOM_PADRE, :NAC_PADRE, :CED_PADRE,
+                :NOM_MADRE, :NAC_MADRE, :CED_MADRE, :FECHA_DEFUNC, :PROV_DOM,
+                :CANT_DOM, :PARR_DOM, :DIRECCION, :INDIVIDUAL_DACTILAR,
+                :IMAGEN,
+                :IMAGEN_NOMBRE,
+                :IMAGEN_2,
+                :IMAGEN_2_NOMBRE
+            )");
+
+
+            // Vincular los parámetros
+            $query->bindParam(':ID_UNICO', $id_unico, PDO::PARAM_STR);
+            $query->bindParam(':CEDULA', $data['CEDULA'], PDO::PARAM_STR);
+            $query->bindParam(':NOMBRES', $data['NOMBRES'], PDO::PARAM_STR);
+            $query->bindParam(':DES_SEXO', $data['DES_SEXO'], PDO::PARAM_STR);
+            $query->bindParam(':DES_CIUDADANIA', $data['DES_CIUDADANIA'], PDO::PARAM_STR);
+            $query->bindParam(':FECHA_NAC', $data['FECHA_NACIM'], PDO::PARAM_STR);
+            $query->bindParam(':PROV_NAC', $data['PROV_NAC'], PDO::PARAM_STR);
+            $query->bindParam(':CANT_NAC', $data['CANT_NAC'], PDO::PARAM_STR);
+            $query->bindParam(':PARR_NAC', $data['PARR_NAC'], PDO::PARAM_STR);
+            $query->bindParam(':DES_NACIONALIDAD', $data['DES_NACIONALIDAD'], PDO::PARAM_STR);
+            $query->bindParam(':ESTADO_CIVIL', $data['ESTADO_CIVIL'], PDO::PARAM_STR);
+            $query->bindParam(':DES_NIV_ESTUD', $data['DES_NIV_ESTUD'], PDO::PARAM_STR);
+            $query->bindParam(':DES_PROFESION', $data['DES_PROFESION'], PDO::PARAM_STR);
+            $query->bindParam(':NOMBRE_CONYUG', $data['NOMBRE_CONYUG'], PDO::PARAM_STR);
+            $query->bindParam(':CEDULA_CONYUG', $data['CEDULA_CONYUG'], PDO::PARAM_STR);
+            $query->bindParam(':FECHA_MATRIM', $data['FECHA_MATRIM'], PDO::PARAM_STR);
+            $query->bindParam(':LUG_MATRIM', $data['LUG_MATRIM'], PDO::PARAM_STR);
+            $query->bindParam(':NOM_PADRE', $data['NOM_PADRE'], PDO::PARAM_STR);
+            $query->bindParam(':NAC_PADRE', $data['NAC_PADRE'], PDO::PARAM_STR);
+            $query->bindParam(':CED_PADRE', $data['CED_PADRE'], PDO::PARAM_STR);
+            $query->bindParam(':NOM_MADRE', $data['NOM_MADRE'], PDO::PARAM_STR);
+            $query->bindParam(':NAC_MADRE', $data['NAC_MADRE'], PDO::PARAM_STR);
+            $query->bindParam(':CED_MADRE', $data['CED_MADRE'], PDO::PARAM_STR);
+            $query->bindParam(':FECHA_DEFUNC', $data['FECHA_DEFUNC'], PDO::PARAM_STR);
+            $query->bindParam(':PROV_DOM', $data['PROV_DOM'], PDO::PARAM_STR);
+            $query->bindParam(':CANT_DOM', $data['CANT_DOM'], PDO::PARAM_STR);
+            $query->bindParam(':PARR_DOM', $data['PARR_DOM'], PDO::PARAM_STR);
+            $query->bindParam(':DIRECCION', $data['DIRECCION'], PDO::PARAM_STR);
+            $query->bindParam(':INDIVIDUAL_DACTILAR', $data['INDIVIDUAL_DACTILAR'], PDO::PARAM_STR);
+            $query->bindParam(':IMAGEN', $IMG, PDO::PARAM_STR);
+            $query->bindParam(':IMAGEN_NOMBRE', $fileName, PDO::PARAM_STR);
+            $query->bindParam(':IMAGEN_2', $IMAGEN, PDO::PARAM_STR);
+            $query->bindParam(':IMAGEN_2_NOMBRE', $fileName2, PDO::PARAM_STR);
+
+            // Ejecutar la consulta
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+
+
+                $data = base64_decode($IMG);
+                $dat2a = base64_decode($IMAGEN);
+                $uploadDir = 'recursos/img_bio/';
+                $filePath = $uploadDir . $fileName;
+                $filePath2 = $uploadDir . $fileName2;
+
+                $permisos = 0777;
+                if (chmod($uploadDir, $permisos)) {
+                    
+                }
+                // Guardar la imagen en la carpeta
+                if (file_put_contents($filePath, $data)) {
+                } 
+
+                if (file_put_contents($filePath2, $dat2a)) {
+                } 
+                return [1, $uploadDir];
+            } else {
+                $err = $query->errorInfo();
+                return [0, $err];
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            return [0, "INTENTE DE NUEVO: " . $e];
+        }
+    }
+
+    ///*************** API DEMOGRAFICO ***************************************/
+
+    function CONSULTA_API_REG_DEMOGRAFICO($cedula_encr)
+    {
+        // $cedula_encr = "yt3TIGS4cvQQt3+q6iQ2InVubHr4hm4V7cxn1V3jFC0=";
+        $old_error_reporting = error_reporting();
+        // Desactivar los mensajes de advertencia
+        error_reporting($old_error_reporting & ~E_WARNING);
+        // Realizar la solicitud
+        // Restaurar el nivel de informe de errores original
+
+        try {
+
+            $url = "https://consultadatos-dataconsulting.ngrok.app/api/ServicioMFC?clientId=Gnc1+rWLcvqL9Ia6W7R9wXVsAbRBplAAUYq1PDHDU2E=";
+
+            // Datos a enviar en la solicitud POST
+            $data = [
+                "id" => "2VFW/nF5o5uM1yKcWtDWFcHQcGscwHz9jbG82uF0O84=",
+                "emp" => "SALVACERO",
+                "img" => ""
+            ];
+
+            // Codificar los datos en formato JSON
+            $jsonData = json_encode($data);
+
+            // Inicializar cURL
+            $ch = curl_init($url);
+
+            // Configurar opciones de cURL
+            // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Recibir la respuesta como una cadena de texto
+            curl_setopt($ch, CURLOPT_POST, true); // Enviar una solicitud POST
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData); // Datos a enviar en la solicitud POST
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($jsonData),
+                'apiKey: DNkAgQHRnuMIwJFY3pVCrwDtmyuJajmQEMlE' // Agregar la API key en el encabezado
+            ]);
+
+            // Ejecutar la solicitud
+            $response = curl_exec($ch);
+
+            // Manejar errores
+            if (curl_errno($ch)) {
+                // echo 'Error:' . curl_error($ch);
+                return [0, curl_error($ch)];
+            } else {
+                $data = json_decode($response, true);
+                return [1, $data];
+            }
+            // Cerrar cURL
+            curl_close($ch);
+        } catch (Exception $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function GUARDAR_DATOS_API_REG_DEMOGRAFICO($ID_UNICO_TRANSACCION, $datos)
+    {
+        try {
+            $data = $datos["CALIFICACION"][0];
+            // echo json_encode($data);
+            // exit();
+            // Conectar a la base de datos
+            // Definir los parámetros
+            $id_unico = $ID_UNICO_TRANSACCION;
+
+            // Preparar la consulta
+            $query = $this->db->connect_dobra()->prepare("INSERT INTO Datos_Empleo (
+                DEPENDIENTE, INDEPENDIENTE, CALIFICACION_SD, CALIFICACION_CR, 
+                CALIFICACION_TOT, RELACION_DEPENDENCIA, SALARIO, 
+                SALARIO_DEPURADO, CUOTA_ESTIMADA, IDENTIFICACION,ID_UNICO
+            ) VALUES (
+                :DEPENDIENTE, :INDEPENDIENTE, :CALIFICACION_SD, :CALIFICACION_CR, 
+                :CALIFICACION_TOT, :RELACION_DEPENDENCIA, :SALARIO, 
+                :SALARIO_DEPURADO, :CUOTA_ESTIMADA, :IDENTIFICACION,:ID_UNICO
+            )");
+
+
+            // Vincular los parámetros
+            $query->bindParam(':DEPENDIENTE', $data['DEPENDIENTE'], PDO::PARAM_STR);
+            $query->bindParam(':INDEPENDIENTE', $data['INDEPENDIENTE'], PDO::PARAM_STR);
+            $query->bindParam(':CALIFICACION_SD', $data['CALIFICACION_SD'], PDO::PARAM_STR);
+            $query->bindParam(':CALIFICACION_CR', $data['CALIFICACION_CR'], PDO::PARAM_STR);
+            $query->bindParam(':CALIFICACION_TOT', $data['CALIFICACION_TOT'], PDO::PARAM_STR);
+            $query->bindParam(':RELACION_DEPENDENCIA', $data['RELACION_DEPENDENCIA'], PDO::PARAM_STR);
+            $query->bindParam(':SALARIO', $data['SALARIO'], PDO::PARAM_STR);
+            $query->bindParam(':SALARIO_DEPURADO', $data['SALARIO_DEPURADO'], PDO::PARAM_STR);
+            $query->bindParam(':CUOTA_ESTIMADA', $data['CUOTA_ESTIMADA'], PDO::PARAM_STR);
+            $query->bindParam(':IDENTIFICACION', $data['IDENTIFICACION'], PDO::PARAM_STR);
+            $query->bindParam(':ID_UNICO', $id_unico, PDO::PARAM_STR);
+
+            // Ejecutar la consulta
+            if ($query->execute()) {
+                $result = $query->fetchAll(PDO::FETCH_ASSOC);
+                return [1];
+            } else {
+                $err = $query->errorInfo();
+                return [0, $err];
+            }
+        } catch (PDOException $e) {
+            $e = $e->getMessage();
+            return [0, "INTENTE DE NUEVO: " . $e];
+        }
+    }
+    //************************************************************************* */
+
+
+
+    function DATOS_API_REGISTRO($ID_UNICO_TRANSACCION, $IMAGEN)
     {
         try {
             set_time_limit(60);
@@ -689,7 +1015,7 @@ class principalmodel extends Model
                     if (count($result) > 0) {
                         $encry = trim($result[0]["cedula_encr"]);
                         if ($encry != null) {
-                            $en = $this->CONSULTA_API_REG($encry);
+                            $en = $this->CONSULTA_API_REG($encry, $ID_UNICO_TRANSACCION, $IMAGEN);
                             return $en;
                         } else {
                             continue;
@@ -750,7 +1076,7 @@ class principalmodel extends Model
     function DATOS_API_CREDITO($ID_UNICO_TRANSACCION)
     {
         try {
-            set_time_limit(300);
+            set_time_limit(180);
             $start_time = microtime(true);
 
             // sleep(4);
@@ -760,7 +1086,7 @@ class principalmodel extends Model
                 $current_time = microtime(true);
                 $elapsed_time = $current_time - $start_time;
                 // Verificar si el tiempo transcurrido excede el límite de tiempo máximo permitido (por ejemplo, 120 segundos)
-                if (round($elapsed_time, 0) >= 60) {
+                if (round($elapsed_time, 0) >= 180) {
                     return [2, "La consulta excedió el tiempo máximo permitido"];
                 }
                 // echo json_encode("Tiempo transcurrido: " . $elapsed_time . " segundos\n");

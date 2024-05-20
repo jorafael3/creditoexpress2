@@ -13,6 +13,8 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
 
     var TELEFONO;
     var ID_UNICO;
+    var IMAGE = null;
+    var CODIGO_SMS = null;
 
     function Mensaje(t1, t2, ic) {
         Swal.fire(
@@ -83,7 +85,7 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
             console.log('x: ', x);
             if (x[0] == 1) {
                 TELEFONO = x[1];
-                ID_UNICO = x[3];
+                // ID_UNICO = x[3];
                 $("#SECC_COD").append(x[2]);
                 stepper.goNext();
                 var codeInputs = $('.code-input');
@@ -120,7 +122,10 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
             AjaxSendReceiveData(url_Validar_Codigo, param, function(x) {
                 if (x[0] == 1) {
                     $("#SECC_CRE").append(x[2]);
+                    CODIGO_SMS = valores
                     stepper.goNext();
+                    $("#SECC_B").addClass("d-none");
+
                 } else {
                     Mensaje(x[1], "", x[2]);
                 }
@@ -140,17 +145,28 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
                 cedula: Cedula,
                 celular: cel,
                 email: email,
-                tipo: 1
+                tipo: 1,
+                IMAGEN: IMAGE,
+                CODIGO_SMS: CODIGO_SMS
             }
+            console.log('param: ', param);
+
             AjaxSendReceiveData(url_Validar_Cedula, param, function(x) {
                 console.log('x: ', x);
-                // if (x[0] == 1) {
-                //     $("#SECC_CRE").empty();
-                //     $("#SECC_B").empty();
-                //     $("#SECC_APR").append(x[3]);
-                // } else {
-                //     Mensaje(x[1], x[2], "error")
-                // }
+                if (x[0] == 1) {
+                    $("#SECC_CRE").empty();
+                    $("#SECC_B").empty();
+                    $("#SECC_APR").append(x[3]);
+
+                } else if (x[0] == 2) {
+                    Mensaje(x[1], x[2], "error");
+                    $("#SECCION_FOTO").removeClass("d-none");
+                    $("#SECCION_INGRESO_DATOS").addClass("d-none");
+                    $("#SECC_B").addClass("d-none");
+                    IMAGE = null
+                } else {
+                    Mensaje(x[1], x[2], "error");
+                }
             })
         }
     }
@@ -166,6 +182,149 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
         cleanedValue = cleanedValue.slice(0, 10);
         $(this).val(cleanedValue);
     });
+
+
+
+    const videoWidth = 420;
+    const videoHeight = 320;
+    const videoTag = document.getElementById("theVideo");
+    const canvasTag = document.getElementById("theCanvas");
+    const canvasTag2 = document.getElementById("theCanvas2");
+    const btnCapture = document.getElementById("btnCapture");
+    const btnDownloadImage = document.getElementById("btnDownloadImage");
+    const btnSendImageToServer = document.getElementById("btnSendImageToServer");
+    const btnStartCamera = document.getElementById("btnStartCamera");
+
+    let cameraActive = false; // Variable para rastrear el estado de la cámara
+    var stream;
+    // Establecer estado inicial de los botones
+    btnCapture.disabled = true;
+    btnDownloadImage.disabled = true;
+    btnSendImageToServer.disabled = true;
+
+    // Set video and canvas attributes
+    videoTag.setAttribute("width", videoWidth);
+    videoTag.setAttribute("height", videoHeight);
+    canvasTag.setAttribute("width", videoWidth);
+    canvasTag.setAttribute("height", videoHeight);
+
+    canvasTag2.setAttribute("width", videoWidth);
+    canvasTag2.setAttribute("height", videoHeight);
+
+    btnStartCamera.addEventListener("click", async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                audio: false,
+                video: {
+                    width: videoWidth,
+                    height: videoHeight
+                },
+            });
+            videoTag.srcObject = stream;
+            btnStartCamera.disabled = true;
+            $("#theVideo").removeClass("d-none");
+            $("#theCanvas").addClass("d-none");
+            $("#SECC_VECTOR").addClass("d-none");
+            $("#CANVAS_CAMARA").removeClass("d-none");
+
+            // Habilitar los botones cuando la cámara está activa
+            cameraActive = true;
+            btnCapture.disabled = false;
+        } catch (error) {
+            console.log("error", error);
+        }
+    });
+
+    // Capture button..
+    btnCapture.addEventListener("click", () => {
+        const canvasContext = canvasTag.getContext("2d");
+        canvasContext.drawImage(videoTag, 0, 0, videoWidth, videoHeight);
+        btnDownloadImage.disabled = false;
+        btnSendImageToServer.disabled = false;
+        const imageDataURL = canvasTag.toDataURL("image/jpeg");
+        IMAGE = imageDataURL;
+        // Hacer algo con la imagen en base64, como mostrarla en una etiqueta de imagen o enviarla al servidor
+        console.log("Imagen en base64:", imageDataURL);
+
+        $("#theVideo").addClass("d-none");
+        $("#theCanvas").removeClass("d-none");
+        cameraActive = false;
+        stopCamera()
+
+    });
+
+    // Detener la transmisión de la cámara
+    function stopCamera() {
+        if (stream) {
+            console.log('stream: ', stream);
+            const tracks = stream.getTracks();
+            tracks.forEach(track => track.stop());
+            videoTag.srcObject = null;
+            stream = null;
+            cameraActive = false;
+            btnStartCamera.disabled = false;
+        }
+    }
+
+    function Btn_Datos() {
+        console.log('x: ');
+    }
+
+    $("#btnIrDatos").on("click", function(x) {
+        if (IMAGE != null) {
+            $("#SECCION_FOTO").addClass("d-none");
+            $("#SECCION_INGRESO_DATOS").removeClass("d-none");
+            $("#SECC_B").removeClass("d-none");
+
+        } else {
+            Mensaje("Debe tomarse una foto para continuar", "", "info");
+        }
+    })
+
+    /**
+     * Boton para forzar la descarga de la imagen
+     */
+    // btnDownloadImage.addEventListener("click", () => {
+    //     const link = document.createElement("a");
+    //     link.download = "capturedImage.png";
+    //     link.href = canvasTag.toDataURL();
+    //     link.click();
+    // });
+
+    /**
+     *Enviar imagen al serrvidor para se guardada
+     */
+    // btnSendImageToServer.addEventListener("click", async () => {
+    //     const dataURL = canvasTag.toDataURL();
+    //     const blob = await dataURLtoBlob(dataURL);
+    //     const data = new FormData();
+    //     data.append("capturedImage", blob, "capturedImage.png");
+
+    //     try {
+    //         const response = await axios.post("upload.php", data, {
+    //             headers: {
+    //                 "Content-Type": "multipart/form-data"
+    //             },
+    //         });
+    //         alert(response.data);
+    //     } catch (error) {
+    //         console.error("Error al enviar la imagen:", error);
+    //     }
+    // });
+
+    async function dataURLtoBlob(dataURL) {
+        const arr = dataURL.split(",");
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        const n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        for (let i = 0; i < n; i++) {
+            u8arr[i] = bstr.charCodeAt(i);
+        }
+        return new Blob([u8arr], {
+            type: mime
+        });
+    }
 
     function AjaxSendReceiveData(url, data, callback) {
         var xmlhttp = new XMLHttpRequest();
