@@ -222,7 +222,7 @@ class principalmodel extends Model
             date_default_timezone_set('America/Guayaquil');
             $celular = trim($param["celular"]);
             $query = $this->db->connect_dobra()->prepare('SELECT * FROM creditos_solicitados
-            WHERE numero = :numero
+            WHERE numero = :numero and API_SOL_ESTADO != 0
             order by fecha_creado desc
             limit 1');
             $query->bindParam(":numero", $celular, PDO::PARAM_STR);
