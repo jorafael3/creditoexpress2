@@ -21,18 +21,18 @@ def Cargar_Datos():
     while True:
         try:
             time.sleep(0.4)
-            # conexion = mysql.connector.connect(
-            #     host="50.87.184.179",
-            #     user="wsoqajmy_jorge",
-            #     password="Equilivre3*",
-            #     database="wsoqajmy_crediweb"
-            # )
             conexion = mysql.connector.connect(
-                host="localhost",
-                user="root",
-                password="",
-                database="crediweb"
+                host="50.87.184.179",
+                user="wsoqajmy_jorge",
+                password="Equilivre3*",
+                database="wsoqajmy_crediweb"
             )
+            # conexion = mysql.connector.connect(
+            #     host="localhost",
+            #     user="root",
+            #     password="",
+            #     database="crediweb"
+            # )
             if conexion.is_connected():
                 # print("Conexión establecida")
                 pass

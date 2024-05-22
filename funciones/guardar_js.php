@@ -63,6 +63,7 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
             // var codeInputs = $('.code-input');
             // codeInputs.first().focus();
             Validar_Codigo();
+
             // stepper.goNext();
         }
 
@@ -141,6 +142,11 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
         if (Cedula == "") {
             Mensaje("Debe ingresar un número de cédula valido", "", "error")
         } else {
+            // if (IMAGE == null) {
+            //     Mensaje("Por favor debe tomarse una foto", "", "error")
+            // } else {
+
+            // }
             let param = {
                 cedula: Cedula,
                 celular: cel,
@@ -154,22 +160,49 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
             AjaxSendReceiveData(url_Validar_Cedula, param, function(x) {
                 console.log('x: ', x);
                 if (x[0] == 1) {
-                    $("#SECC_CRE").empty();
-                    $("#SECC_B").empty();
-                    $("#SECC_APR").append(x[3]);
+                    // $("#SECC_CRE").empty();
+                    // $("#SECC_B").empty();
+                    // $("#SECCION_FOTO").empty();
+                    // $("#SECC_APR").append(x[3]);
 
                 } else if (x[0] == 2) {
                     Mensaje(x[1], x[2], "error");
-                    $("#SECCION_FOTO").removeClass("d-none");
-                    $("#SECCION_INGRESO_DATOS").addClass("d-none");
+                    $("#SECCION_FOTO").addClass("d-none");
+                    $("#SECCION_INGRESO_DATOS").removeClass("d-none");
                     $("#SECC_B").addClass("d-none");
                     IMAGE = null
                 } else {
+                    $("#SECCION_FOTO").addClass("d-none");
+                    $("#SECCION_INGRESO_DATOS").removeClass("d-none");
+                    $("#SECC_BTN_CON_DATOS").removeClass("d-none");
+                    $("#SECC_B").addClass("d-none");
+                    IMAGE = null
                     Mensaje(x[1], x[2], "error");
                 }
             })
+
         }
     }
+
+    $("#btnIrDatos").on("click", function(x) {
+        console.log('x: ', x);
+        let Cedula = $("#CEDULA").val();
+
+        // if (IMAGE != null) {
+        if (Cedula == "") {
+            Mensaje("Debe ingresar un número de cédula valido", "", "error")
+        } else {
+            if (validarCedulaEcuatoriana(cedula)) {
+                $("#SECCION_FOTO").removeClass("d-none");
+                $("#SECCION_INGRESO_DATOS").addClass("d-none");
+                $("#SECC_B").removeClass("d-none");
+                $("#SECC_BTN_CON_DATOS").addClass("d-none");
+            } else {
+                console.log("Cédula inválida");
+            }
+
+        }
+    })
 
     $("#CELULAR").on("input", function() {
         var cleanedValue = $(this).val().replace(/\D/g, '');
@@ -182,6 +215,51 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
         cleanedValue = cleanedValue.slice(0, 10);
         $(this).val(cleanedValue);
     });
+
+    function validarCedulaEcuatoriana(cedula) {
+        // Verificar que la cédula tenga 10 dígitos
+        if (cedula.length !== 10) {
+            return false;
+        }
+
+        // Verificar que solo contenga números
+        if (!/^\d+$/.test(cedula)) {
+            return false;
+        }
+
+        // Extraer el código de la región y verificar que sea válido
+        var region = parseInt(cedula.substring(0, 2));
+        if (region < 1 || region > 24) {
+            return false;
+        }
+
+        // Aplicar el algoritmo de verificación
+        var total = 0;
+        var digitos = cedula.split('').map(Number);
+        var coeficientes = [2, 1, 2, 1, 2, 1, 2, 1, 2];
+
+        for (var i = 0; i < coeficientes.length; i++) {
+            var producto = digitos[i] * coeficientes[i];
+            if (producto >= 10) {
+                producto -= 9;
+            }
+            total += producto;
+        }
+
+        var digitoVerificador = total % 10 ? 10 - total % 10 : 0;
+
+        // Verificar que el último dígito sea igual al dígito verificador
+        return digitoVerificador === digitos[9];
+    }
+
+    // Ejemplo de uso:
+    var cedula = "1710034065"; // Reemplazar con la cédula que quieres validar
+    if (validarCedulaEcuatoriana(cedula)) {
+        console.log("Cédula válida");
+    } else {
+        console.log("Cédula inválida");
+    }
+
 
 
 
@@ -232,7 +310,7 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
             btnCapture.disabled = false;
         } catch (error) {
             console.log("error", error);
-            Mensaje("Error al iniciar la camara","Asegurese de dar permisos a la camara, o tener una conectada","error")
+            Mensaje("Error al iniciar la camara", "Asegurese de dar permisos a la camara, o tener una conectada", "error")
         }
     });
 
@@ -271,16 +349,7 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
         console.log('x: ');
     }
 
-    $("#btnIrDatos").on("click", function(x) {
-        if (IMAGE != null) {
-            $("#SECCION_FOTO").addClass("d-none");
-            $("#SECCION_INGRESO_DATOS").removeClass("d-none");
-            $("#SECC_B").removeClass("d-none");
 
-        } else {
-            Mensaje("Debe tomarse una foto para continuar", "", "info");
-        }
-    })
 
     /**
      * Boton para forzar la descarga de la imagen
