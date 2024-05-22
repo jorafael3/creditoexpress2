@@ -123,44 +123,70 @@ require 'views/header.php';
                         <div class="mb-5">
                             <div class="flex-column current" data-kt-stepper-element="content">
                                 <div id="SECC_CEL">
+                                    <style>
+                                        .image-container {
+                                            position: relative;
+                                            display: inline-block;
+                                            /* Para que el contenedor se ajuste al tamaño de la imagen */
+                                        }
 
-                                <div id="SECCION_FOTO_CEDULA" class="d-none">
-                                    <div class="container text-center">
-                                        <div class="row justify-content-md-center mt-5">
-                                            <div class="col-md-12">
-                                                <h2>
-                                                    Nesecitamos una foto de la cara frontal de tu cedula,
-                                                </h2>
-                                                <h4>Por favor toma la foto como indica la plantilla</h4>
-                                                <hr />
-                                            </div>
-                                            <div id="SECC_VECTOR">
-                                                <img src="https://media.istockphoto.com/id/1347646440/vector/face-id-scanning-face-line-icon-face-recognition.jpg?s=612x612&w=0&k=20&c=KfNgCAv1BmAHLZjfVMRrL_bFDxIQpScZFRJtzMhwzgw=" class="img-fluid" alt="sorpresa" style="width: 350px" />
-                                            </div>
+                                        .line {
+                                            position: absolute;
+                                            top: 50%;
+                                            /* Ajusta la posición vertical de la línea */
+                                            left: 0;
+                                            width: 100%;
+                                            /* La línea ocupa todo el ancho del contenedor */
+                                            height: 2px;
+                                            /* Grosor de la línea */
+                                            background-color: red;
+                                            /* Color de la línea */
+                                            transform: translateY(-50%);
+                                            /* Centra verticalmente la línea */
+                                        }
+                                    </style>
+                                    <div id="SECCION_FOTO_CEDULA" class="">
+                                        <div class="image-container">
+                                            <img src="ruta_de_tu_imagen.jpg" alt="DNI">
+                                            <div class="line"></div>
+                                        </div>
+                                        <div class="container text-center">
+                                            <div class="row justify-content-md-center mt-5">
+                                                <div class="col-md-12">
+                                                    <h2>
+                                                        Nesecitamos una foto de la cara frontal de tu cedula,
+                                                    </h2>
+                                                    <h4>Por favor toma la foto como indica la plantilla</h4>
+                                                    <hr />
+                                                </div>
+                                                <div id="SECC_VECTOR">
+                                                    <img src="https://media.istockphoto.com/id/1347646440/vector/face-id-scanning-face-line-icon-face-recognition.jpg?s=612x612&w=0&k=20&c=KfNgCAv1BmAHLZjfVMRrL_bFDxIQpScZFRJtzMhwzgw=" class="img-fluid" alt="sorpresa" style="width: 350px" />
 
-                                            <div class="col-md-12 d-none" id="CANVAS_CAMARA">
-                                                <video id="theVideo" autoplay muted></video>
-                                                <canvas id="theCanvas" class="d-none"></canvas>
-                                                <canvas id="theCanvas2" class="d-none"></canvas>
-                                            </div>
-                                            <div class="d-grid gap-2 d-md-block">
-                                                <button class="btn btn-primary" id="btnCaptureCedula">
-                                                    <i class="bi bi-camera"></i> Tomar foto
-                                                </button>
-                                                <button class="btn btn-primary d-none" id="btnDownloadImage">
-                                                    descargar imagen
-                                                </button>
-                                                <button class="btn btn-primary d-none" id="btnSendImageToServer" disabled>
-                                                    guardar imagen
-                                                </button>
-                                                <button class="btn btn-primary" id="btnStartCameraCedula">
-                                                    <i class="bi bi-camera"></i> Iniciar camara
-                                                </button>
+                                                </div>
 
+                                                <div class="col-md-12 d-none" id="CANVAS_CAMARA">
+                                                    <video id="theVideo" autoplay muted></video>
+                                                    <canvas id="theCanvas" class="d-none"></canvas>
+                                                    <canvas id="theCanvas2" class="d-none"></canvas>
+                                                </div>
+                                                <div class="d-grid gap-2 d-md-block">
+                                                    <button class="btn btn-primary" id="btnCaptureCedula">
+                                                        <i class="bi bi-camera"></i> Tomar foto
+                                                    </button>
+                                                    <button class="btn btn-primary d-none" id="btnDownloadImage">
+                                                        descargar imagen
+                                                    </button>
+                                                    <button class="btn btn-primary d-none" id="btnSendImageToServer" disabled>
+                                                        guardar imagen
+                                                    </button>
+                                                    <button class="btn btn-primary" id="btnStartCameraCedula">
+                                                        <i class="bi bi-camera"></i> Iniciar camara
+                                                    </button>
+
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
 
 
@@ -236,7 +262,7 @@ require 'views/header.php';
                                         </div>
                                     </div>
                                 </div>
-                             
+
                                 <div id="SECC_CRE">
 
 
