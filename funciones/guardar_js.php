@@ -15,6 +15,7 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
     var ID_UNICO;
     var IMAGE = null;
     var CODIGO_SMS = null;
+    var IMAGECEDULA = null;
 
     function Mensaje(t1, t2, ic) {
         Swal.fire(
@@ -153,34 +154,51 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
                 email: email,
                 tipo: 1,
                 IMAGEN: IMAGE,
-                CODIGO_SMS: CODIGO_SMS
+                IMAGECEDULA: IMAGECEDULA,
+                CODIGO_SMS: CODIGO_SMS.join('')
             }
             console.log('param: ', param);
+            if (IMAGE == null || IMAGECEDULA == null) {
+                Mensaje("Al paracer una de las fotografias no esta completa", "Por favor vuelva a tomar la foto", "error");
+            } else {
 
-            AjaxSendReceiveData(url_Validar_Cedula, param, function(x) {
-                console.log('x: ', x);
-                if (x[0] == 1) {
-                    // $("#SECC_CRE").empty();
-                    // $("#SECC_B").empty();
-                    // $("#SECCION_FOTO").empty();
-                    // $("#SECC_APR").append(x[3]);
+                $("#SECCION_GIF").removeClass("d-none");
+                $("#SECCION_FOTO_CEDULA").addClass("d-none");
+                $("#SECC_B").addClass("d-none");
 
-                } else if (x[0] == 2) {
-                    Mensaje(x[1], x[2], "error");
-                    $("#SECCION_FOTO").addClass("d-none");
-                    $("#SECCION_INGRESO_DATOS").removeClass("d-none");
-                    $("#SECC_B").addClass("d-none");
-                    IMAGE = null
-                } else {
-                    $("#SECCION_FOTO").addClass("d-none");
-                    $("#SECCION_INGRESO_DATOS").removeClass("d-none");
-                    $("#SECC_BTN_CON_DATOS").removeClass("d-none");
-                    $("#SECC_B").addClass("d-none");
-                    IMAGE = null
-                    Mensaje(x[1], x[2], "error");
-                }
-            })
 
+                AjaxSendReceiveData(url_Validar_Cedula, param, function(x) {
+                    console.log('x: ', x);
+                    $("#SECCION_GIF").addClass("d-none");
+                    $("#SECCION_FOTO_CEDULA").removeClass("d-none");
+                    $("#SECC_B").removeClass("d-none");
+                    if (x[0] == 1) {
+                        $("#SECCION_GIF").addClass("d-none");
+                        $("#SECC_CRE").empty();
+                        $("#SECC_B").empty();
+                        $("#SECCION_FOTO").empty();
+                        $("#SECCION_FOTO_CEDULA").empty();
+                        $("#SECC_APR").append(x[3]);
+                    } else if (x[0] == 2) {
+                        Mensaje(x[1], x[2], "error");
+                        $("#SECCION_GIF").addClass("d-none");
+                        $("#SECCION_FOTO_CEDULA").removeClass("d-none");
+                        $("#SECC_B").removeClass("d-none");
+                        // IMAGE = null
+                    } else {
+                        $("#SECCION_GIF").addClass("d-none");
+                        $("#SECCION_FOTO_CEDULA").removeClass("d-none");
+                        $("#SECC_B").removeClass("d-none");
+
+                        // $("#SECCION_FOTO").addClass("d-none");
+                        // $("#SECCION_INGRESO_DATOS").removeClass("d-none");
+                        // $("#SECC_BTN_CON_DATOS").removeClass("d-none");
+                        // $("#SECC_B").addClass("d-none");
+                        // IMAGECEDULA = null
+                        Mensaje(x[1], x[2], "error");
+                    }
+                });
+            }
         }
     }
 
@@ -192,17 +210,82 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
         if (Cedula == "") {
             Mensaje("Debe ingresar un número de cédula valido", "", "error")
         } else {
-            if (validarCedulaEcuatoriana(cedula)) {
+            let val = validarCedulaEcuatoriana(Cedula);
+            console.log('val: ', val);
+            if (validarCedulaEcuatoriana(Cedula)) {
                 $("#SECCION_FOTO").removeClass("d-none");
                 $("#SECCION_INGRESO_DATOS").addClass("d-none");
-                $("#SECC_B").removeClass("d-none");
+                // $("#SECC_B").removeClass("d-none");
                 $("#SECC_BTN_CON_DATOS").addClass("d-none");
+                $("#SECC_BTN_CON_DATOS_CEDULA").removeClass("d-none");
             } else {
                 console.log("Cédula inválida");
+                Mensaje("La cédula ingresada no es valida", "por favor ingrese un número valido", "error")
             }
 
         }
-    })
+    });
+
+    $("#btnIrDatoscedula").on("click", function(x) {
+        console.log('x: ', x);
+        let Cedula = $("#CEDULA").val();
+
+        // if (IMAGE != null) {
+        if (Cedula == "") {
+            Mensaje("Debe ingresar un número de cédula valido", "", "error")
+        } else {
+
+            if (validarCedulaEcuatoriana(Cedula)) {
+                if (IMAGE == null) {
+                    Mensaje("No se encontro foto", "por favor Debe tomarse un foto para continuar", "info")
+                } else {
+                    $("#SECCION_FOTO_CEDULA").removeClass("d-none");
+                    $("#SECCION_FOTO").addClass("d-none");
+                    $("#SECC_B").removeClass("d-none");
+                    $("#SECC_BTN_CON_DATOS").addClass("d-none");
+                    $("#SECC_BTN_CON_DATOS_CEDULA").addClass("d-none");
+                }
+
+
+            } else {
+
+                console.log("Cédula inválida");
+                Mensaje("La cédula ingresada no es valida", "por favor ingrese un número valido", "error")
+            }
+
+
+        }
+    });
+
+    $("#CEDULA").on('keydown', function(event) {
+        if (event.which === 13) { // 13 is the keycode for Enter
+            event.preventDefault();
+            $("#btnIrDatos").click()
+        }
+    });
+
+
+    $("#BtnBackToDatosCedula").on("click", function(x) {
+
+        $("#SECCION_FOTO").addClass("d-none");
+        $("#SECCION_INGRESO_DATOS").removeClass("d-none");
+        $("#SECC_BTN_CON_DATOS_CEDULA").addClass("d-none");
+        $("#SECC_BTN_CON_DATOS").removeClass("d-none");
+
+    });
+
+    $("#BtnBackToDatosfoto").on("click", function(x) {
+
+        $("#SECCION_FOTO").removeClass("d-none");
+        $("#SECCION_FOTO_CEDULA").addClass("d-none");
+        $("#SECC_BTN_CON_DATOS_CEDULA").removeClass("d-none");
+        $("#SECC_BTN_CON_DATOS").addClass("d-none");
+        $("#SECC_B").addClass("d-none");
+
+    });
+
+
+
 
     $("#CELULAR").on("input", function() {
         var cleanedValue = $(this).val().replace(/\D/g, '');
@@ -252,13 +335,7 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
         return digitoVerificador === digitos[9];
     }
 
-    // Ejemplo de uso:
-    var cedula = "1710034065"; // Reemplazar con la cédula que quieres validar
-    if (validarCedulaEcuatoriana(cedula)) {
-        console.log("Cédula válida");
-    } else {
-        console.log("Cédula inválida");
-    }
+
 
 
 
@@ -308,6 +385,7 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
             // Habilitar los botones cuando la cámara está activa
             cameraActive = true;
             btnCapture.disabled = false;
+            IMAGE = null
         } catch (error) {
             console.log("error", error);
             Mensaje("Error al iniciar la camara", "Asegurese de dar permisos a la camara, o tener una conectada", "error")
@@ -324,6 +402,7 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
         IMAGE = imageDataURL;
         // Hacer algo con la imagen en base64, como mostrarla en una etiqueta de imagen o enviarla al servidor
         console.log("Imagen en base64:", imageDataURL);
+        btnCapture.disabled = true;
 
         $("#theVideo").addClass("d-none");
         $("#theCanvas").removeClass("d-none");
@@ -331,6 +410,67 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
         stopCamera()
 
     });
+
+
+    const videoWidth2 = 420;
+    const videoHeight2 = 250;
+    const videoTag2 = document.getElementById("theVideo2");
+    const canvasTag3 = document.getElementById("theCanvas3");
+    const btnCapture2 = document.getElementById("btnCaptureCedula");
+    const btnStartCamera2 = document.getElementById("btnStartCameraCedula");
+
+    let cameraActive2 = false; // Variable para rastrear el estado de la cámara
+    var stream2;
+
+    videoTag2.setAttribute("width", videoWidth);
+    videoTag2.setAttribute("height", videoHeight);
+    canvasTag3.setAttribute("width", videoWidth);
+    canvasTag3.setAttribute("height", videoHeight);
+
+    btnStartCamera2.addEventListener("click", async () => {
+        try {
+            stream2 = await navigator.mediaDevices.getUserMedia({
+                audio: false,
+                video: {
+                    width: videoWidth2,
+                    height: videoHeight2
+                },
+            });
+            videoTag2.srcObject = stream2;
+            btnStartCamera2.disabled = true;
+            $("#theVideo2").removeClass("d-none");
+            $("#theCanvas3").addClass("d-none");
+            $("#SECC_VECTOR2").addClass("d-none");
+            $("#CANVAS_CAMARA2").removeClass("d-none");
+
+            // Habilitar los botones cuando la cámara está activa
+            cameraActive2 = true;
+            btnCapture2.disabled = false;
+            IMAGECEDULA = null
+        } catch (error) {
+            console.log("error", error);
+            Mensaje("Error al iniciar la camara", "Asegurese de dar permisos a la camara, o tener una conectada", "error")
+        }
+    });
+
+    btnCapture2.addEventListener("click", () => {
+        const canvasContext = canvasTag3.getContext("2d");
+        canvasContext.drawImage(videoTag2, 0, 0, videoWidth2, videoHeight2);
+        const imageDataURL = canvasTag3.toDataURL("image/jpeg");
+        btnDownloadImage.disabled = false;
+        btnSendImageToServer.disabled = false;
+        IMAGECEDULA = imageDataURL;
+        // Hacer algo con la imagen en base64, como mostrarla en una etiqueta de imagen o enviarla al servidor
+        console.log("Imagen en base64:", imageDataURL);
+        btnCapture2.disabled = true;
+
+        $("#theVideo2").addClass("d-none");
+        $("#theCanvas3").removeClass("d-none");
+        cameraActive2 = false;
+        stopCamera2()
+
+    });
+
 
     // Detener la transmisión de la cámara
     function stopCamera() {
@@ -342,6 +482,18 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
             stream = null;
             cameraActive = false;
             btnStartCamera.disabled = false;
+        }
+    }
+
+    function stopCamera2() {
+        if (stream2) {
+            console.log('stream: ', stream2);
+            const tracks = stream2.getTracks();
+            tracks.forEach(track => track.stop());
+            videoTag2.srcObject = null;
+            stream2 = null;
+            cameraActive2 = false;
+            btnStartCamera2.disabled = false;
         }
     }
 

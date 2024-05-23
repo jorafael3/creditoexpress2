@@ -51,6 +51,53 @@ require 'views/header.php';
     }
 </style>
 
+<style>
+    body,
+    html {
+        height: 100%;
+        margin: 0;
+    }
+
+    #SECCION_FOTO_CEDULA .image-container {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        /* Ajusta este valor según sea necesario */
+    }
+
+    #SECCION_FOTO_CEDULA img {
+        width: 100%;
+        height: 100%;
+        /* object-fit: cover; */
+    }
+
+    .line {
+        width: 100%;
+        height: 5px;
+        background-color: yellow;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        animation: upDown 3s infinite;
+    }
+
+    @keyframes upDown {
+
+        0%,
+        100% {
+            top: 10%;
+        }
+
+        50% {
+            top: 90%;
+        }
+    }
+
+    button {
+        margin: 10px 0;
+    }
+</style>
+
 <div class="row justify-content-center" id="form-container">
     <div class="col-xl-4 col-md-6" style="margin-top: 80px;">
         <div class="card ">
@@ -123,70 +170,7 @@ require 'views/header.php';
                         <div class="mb-5">
                             <div class="flex-column current" data-kt-stepper-element="content">
                                 <div id="SECC_CEL">
-                                    <style>
-                                        .image-container {
-                                            position: relative;
-                                            display: inline-block;
-                                            /* Para que el contenedor se ajuste al tamaño de la imagen */
-                                        }
 
-                                        .line {
-                                            position: absolute;
-                                            top: 50%;
-                                            /* Ajusta la posición vertical de la línea */
-                                            left: 0;
-                                            width: 100%;
-                                            /* La línea ocupa todo el ancho del contenedor */
-                                            height: 2px;
-                                            /* Grosor de la línea */
-                                            background-color: red;
-                                            /* Color de la línea */
-                                            transform: translateY(-50%);
-                                            /* Centra verticalmente la línea */
-                                        }
-                                    </style>
-                                    <div id="SECCION_FOTO_CEDULA" class="">
-                                        <div class="image-container">
-                                            <img src="ruta_de_tu_imagen.jpg" alt="DNI">
-                                            <div class="line"></div>
-                                        </div>
-                                        <div class="container text-center">
-                                            <div class="row justify-content-md-center mt-5">
-                                                <div class="col-md-12">
-                                                    <h2>
-                                                        Nesecitamos una foto de la cara frontal de tu cedula,
-                                                    </h2>
-                                                    <h4>Por favor toma la foto como indica la plantilla</h4>
-                                                    <hr />
-                                                </div>
-                                                <div id="SECC_VECTOR">
-                                                    <img src="https://media.istockphoto.com/id/1347646440/vector/face-id-scanning-face-line-icon-face-recognition.jpg?s=612x612&w=0&k=20&c=KfNgCAv1BmAHLZjfVMRrL_bFDxIQpScZFRJtzMhwzgw=" class="img-fluid" alt="sorpresa" style="width: 350px" />
-
-                                                </div>
-
-                                                <div class="col-md-12 d-none" id="CANVAS_CAMARA">
-                                                    <video id="theVideo" autoplay muted></video>
-                                                    <canvas id="theCanvas" class="d-none"></canvas>
-                                                    <canvas id="theCanvas2" class="d-none"></canvas>
-                                                </div>
-                                                <div class="d-grid gap-2 d-md-block">
-                                                    <button class="btn btn-primary" id="btnCaptureCedula">
-                                                        <i class="bi bi-camera"></i> Tomar foto
-                                                    </button>
-                                                    <button class="btn btn-primary d-none" id="btnDownloadImage">
-                                                        descargar imagen
-                                                    </button>
-                                                    <button class="btn btn-primary d-none" id="btnSendImageToServer" disabled>
-                                                        guardar imagen
-                                                    </button>
-                                                    <button class="btn btn-primary" id="btnStartCameraCedula">
-                                                        <i class="bi bi-camera"></i> Iniciar camara
-                                                    </button>
-
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
 
 
 
@@ -225,7 +209,9 @@ require 'views/header.php';
 
                             </div>
                             <div class="flex-column" data-kt-stepper-element="content">
+
                                 <div id="SECCION_FOTO" class="d-none">
+                                    <button id="BtnBackToDatosCedula" class="btn btn-danger btn-sm"><i class="bi bi-backspace-fill fs-1"></i></button>
                                     <div class="container text-center">
                                         <div class="row justify-content-md-center mt-5">
                                             <div class="col-md-12">
@@ -263,12 +249,60 @@ require 'views/header.php';
                                     </div>
                                 </div>
 
+                                <div id="SECCION_FOTO_CEDULA" class=" d-none">
+                                    <button id="BtnBackToDatosfoto" class="btn btn-danger btn-sm"><i class="bi bi-backspace-fill fs-1"></i></button>
+                                    <div class="container text-center">
+                                        <div class="row justify-content-md-center mt-5">
+                                            <div class="col-md-12">
+                                                <h2>Nesecitamos una foto de la cara frontal de tu cedula,</h2>
+                                                <h4>Por favor toma la foto como indica la plantilla</h4>
+                                                <hr />
+                                            </div>
+                                            <div id="SECC_VECTOR2" class="col-md-12">
+                                                <div class="image-container position-relative">
+                                                    <img src="https://www.jybaro.com/wp-content/uploads/2017/01/cedula-registro-civil.jpg" class="img-fluid" alt="sorpresa" style="width: 350px" />
+                                                    <div class="line"></div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12 d-none" id="CANVAS_CAMARA2">
+                                                <video id="theVideo2" autoplay muted></video>
+                                                <canvas id="theCanvas3" class="d-none"></canvas>
+                                            </div>
+                                            <div class="d-grid gap-2 d-md-block">
+                                                <button class="btn btn-primary" id="btnCaptureCedula">
+                                                    <i class="bi bi-camera"></i> Tomar foto
+                                                </button>
+                                                <button class="btn btn-primary d-none" id="btnDownloadImage2">
+                                                    descargar imagen
+                                                </button>
+                                                <button class="btn btn-primary d-none" id="btnSendImageToServer2" disabled>
+                                                    guardar imagen
+                                                </button>
+                                                <button class="btn btn-primary" id="btnStartCameraCedula">
+                                                    <i class="bi bi-camera"></i> Iniciar camara
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="SECCION_GIF" class="d-flex flex-stack justify-content-center d-none">
+                                    <div id="">
+                                        <img src="https://cdn.pixabay.com/animation/2023/10/08/03/19/03-19-26-213_512.gif" class="img-fluid" alt="sorpresa" style="width: 350px" />
+                                    </div>
+                                </div>
+
                                 <div id="SECC_CRE">
 
 
                                 </div>
-                                <div id="SECC_BTN_CON_DATOS">
-                                    <button class="btn btn-success" id="btnIrDatos">
+                                <div id="SECC_BTN_CON_DATOS" class="d-flex flex-stack justify-content-center">
+                                    <button class="btn btn-success fw-bold" id="btnIrDatos">
+                                        Continuar
+                                    </button>
+                                </div>
+                                <div id="SECC_BTN_CON_DATOS_CEDULA" class="d-flex flex-stack justify-content-center d-none">
+                                    <button class="btn btn-success fw-bold" id="btnIrDatoscedula">
                                         Continuar
                                     </button>
                                 </div>
@@ -305,31 +339,79 @@ require 'views/header.php';
         </div>
     </div>
 </div>
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="styles.css" />
-    <script defer src="app.js"></script>
-    <title>Document</title>
+<!-- 
+<!DOCTYPE html>
+<html lang="en"> -->
+
+<!-- <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animación de Línea Horizontal</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+
+        .line {
+            width: 100%;
+            height: 5px;
+            background-color: yellow;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            animation: upDown 2s infinite;
+        }
+
+        @keyframes upDown {
+
+            0%,
+            100% {
+                top: 50%;
+            }
+
+            50% {
+                top: 10%;
+            }
+        }
+    </style>
 </head>
 
 <body>
-
-
-
-
-    <a href="fotos.php" target="_blank" id="bottomRightButton"> fotos </a>
-
+    <div class="container">
+        <div class="line"></div>
+    </div>
+    <button onclick="toggleAnimation()">Iniciar/Detener Animación</button>
 </body>
+
 <script>
+    let isAnimating = true;
 
-</script>
+    function toggleAnimation() {
+        const line = document.querySelector('.line');
+        if (isAnimating) {
+            line.style.animation = 'none';
+        } else {
+            line.style.animation = 'upDown 2s infinite';
+        }
+        isAnimating = !isAnimating;
+    }
+</script> -->
 
-</html>
+<!-- </html> -->
+
+
 
 
 <div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
