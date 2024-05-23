@@ -172,31 +172,31 @@ $url_Validar_Cedula = constant('URL') . 'principal/Validar_Cedula/';
                     $("#SECCION_GIF").addClass("d-none");
                     $("#SECCION_FOTO_CEDULA").removeClass("d-none");
                     $("#SECC_B").removeClass("d-none");
-                    if (x[0] == 1) {
-                        $("#SECCION_GIF").addClass("d-none");
-                        $("#SECC_CRE").empty();
-                        $("#SECC_B").empty();
-                        $("#SECCION_FOTO").empty();
-                        $("#SECCION_FOTO_CEDULA").empty();
-                        $("#SECC_APR").append(x[3]);
-                    } else if (x[0] == 2) {
-                        Mensaje(x[1], x[2], "error");
-                        $("#SECCION_GIF").addClass("d-none");
-                        $("#SECCION_FOTO_CEDULA").removeClass("d-none");
-                        $("#SECC_B").removeClass("d-none");
-                        // IMAGE = null
-                    } else {
-                        $("#SECCION_GIF").addClass("d-none");
-                        $("#SECCION_FOTO_CEDULA").removeClass("d-none");
-                        $("#SECC_B").removeClass("d-none");
+                    // if (x[0] == 1) {
+                    //     $("#SECCION_GIF").addClass("d-none");
+                    //     $("#SECC_CRE").empty();
+                    //     $("#SECC_B").empty();
+                    //     $("#SECCION_FOTO").empty();
+                    //     $("#SECCION_FOTO_CEDULA").empty();
+                    //     $("#SECC_APR").append(x[3]);
+                    // } else if (x[0] == 2) {
+                    //     Mensaje(x[1], x[2], "error");
+                    //     $("#SECCION_GIF").addClass("d-none");
+                    //     $("#SECCION_FOTO_CEDULA").removeClass("d-none");
+                    //     $("#SECC_B").removeClass("d-none");
+                    //     // IMAGE = null
+                    // } else {
+                    //     $("#SECCION_GIF").addClass("d-none");
+                    //     $("#SECCION_FOTO_CEDULA").removeClass("d-none");
+                    //     $("#SECC_B").removeClass("d-none");
 
-                        // $("#SECCION_FOTO").addClass("d-none");
-                        // $("#SECCION_INGRESO_DATOS").removeClass("d-none");
-                        // $("#SECC_BTN_CON_DATOS").removeClass("d-none");
-                        // $("#SECC_B").addClass("d-none");
-                        // IMAGECEDULA = null
-                        Mensaje(x[1], x[2], "error");
-                    }
+                    //     // $("#SECCION_FOTO").addClass("d-none");
+                    //     // $("#SECCION_INGRESO_DATOS").removeClass("d-none");
+                    //     // $("#SECC_BTN_CON_DATOS").removeClass("d-none");
+                    //     // $("#SECC_B").addClass("d-none");
+                    //     // IMAGECEDULA = null
+                    //     Mensaje(x[1], x[2], "error");
+                    // }
                 });
             }
         }

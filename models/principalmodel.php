@@ -382,6 +382,7 @@ class principalmodel extends Model
                 $IMAGECEDULA = explode("base64,", $param["IMAGECEDULA"]);
 
                 // $IMAGEN = "";
+                // $IMAGECEDULA = "";
                 $IMAGEN = $IMAGEN[1];
                 $IMAGECEDULA = $IMAGECEDULA[1];
                 if ($VAL_CONSULTA[0] == 1) {
@@ -391,7 +392,7 @@ class principalmodel extends Model
                     // exit();
                     if ($VAL_CEDULA_[0] == 1) {
                         $ID_UNICO_TRANSACCION = $VAL_CEDULA_[2];
-                        $DATOS_API_CEDULA = $this->DATOS_API_REGISTRO($ID_UNICO_TRANSACCION, $IMAGEN, $IMAGECEDULA);
+                        $DATOS_API_CEDULA = $this->DATOS_API_REGISTRO($ID_UNICO_TRANSACCION, $IMAGEN, $IMAGECEDULA, $CEDULA_);
 
                         if ($DATOS_API_CEDULA[0] == 1) {
                             $GUARDAR_DATOS_API_REG = $this->GUARDAR_DATOS_API_REGISTRO($DATOS_API_CEDULA[1]["SOCIODEMOGRAFICO"][0], $ID_UNICO_TRANSACCION);
@@ -473,7 +474,7 @@ class principalmodel extends Model
                             $_inci = array(
                                 "ERROR_TYPE" => "ERROR DATOS_API_REGISTRO",
                                 "ERROR_CODE" => "DATOS_API_REGISTRO",
-                                "ERROR_TEXT" => "ERROR EN RESPUESTA".json_encode($DATOS_API_CEDULA),
+                                "ERROR_TEXT" => "ERROR EN RESPUESTA" . json_encode($DATOS_API_CEDULA),
                             );
                             $INC = $this->INCIDENCIAS($_inci);
                             $this->ELIMINAR_LINEA_ERROR($ID_UNICO_TRANSACCION);
@@ -621,7 +622,7 @@ class principalmodel extends Model
 
 
 
-    function DATOS_API_REGISTRO($ID_UNICO_TRANSACCION, $IMAGEN, $IMAGECEDULA)
+    function DATOS_API_REGISTRO($ID_UNICO_TRANSACCION, $IMAGEN, $IMAGECEDULA, $CEDULA_)
     {
         try {
             set_time_limit(180);
@@ -657,7 +658,7 @@ class principalmodel extends Model
                         $encry = trim($result[0]["cedula_encr"]);
                         $encry2 = trim($result[0]["cedula_encr2"]);
                         if ($encry != null && $encry2 != null) {
-                            $en = $this->CONSULTA_API_REG($encry, $ID_UNICO_TRANSACCION, $IMAGEN, $encry2, $IMAGECEDULA);
+                            $en = $this->CONSULTA_API_REG($encry, $ID_UNICO_TRANSACCION, $IMAGEN, $encry2, $IMAGECEDULA, $CEDULA_);
                             return $en;
                         } else {
                             continue;
@@ -720,12 +721,12 @@ class principalmodel extends Model
         }
     }
 
-    function CONSULTA_API_REG($cedula_encr, $ID_UNICO_TRANSACCION, $IMAGEN, $encry2, $IMAGECEDULA)
+    function CONSULTA_API_REG($cedula_encr, $ID_UNICO_TRANSACCION, $IMAGEN, $encry2, $IMAGECEDULA, $CEDULA_)
     {
 
-        $CONSULTA_API_REG_BIO = $this->CONSULTA_API_REG_BIO($cedula_encr, $IMAGEN);
-        // echo json_encode($CONSULTA_API_REG_BIO);
-        // exit();
+        $CONSULTA_API_REG_BIO = $this->CONSULTA_API_REG_BIO2($cedula_encr, $IMAGEN, $IMAGECEDULA, $CEDULA_);
+        echo json_encode($CONSULTA_API_REG_BIO);
+        exit();
         if ($CONSULTA_API_REG_BIO[0] == 1) {
             $ERROR_FOTO = isset($CONSULTA_API_REG_BIO[1]["RECONOCIMIENTO"][0]["Error"]);
             if ($ERROR_FOTO == "No") {
@@ -875,6 +876,61 @@ class principalmodel extends Model
             if (curl_errno($ch)) {
                 // echo 'Error:' . curl_error($ch);
                 return [0, curl_error($ch)];
+            } else {
+                $data = json_decode($response, true);
+                return [1, $data];
+            }
+            // Cerrar cURL
+            curl_close($ch);
+        } catch (Exception $e) {
+            $e = $e->getMessage();
+            echo json_encode($e);
+            exit();
+        }
+    }
+
+    function CONSULTA_API_REG_BIO2($cedula_encr, $imagen, $IMAGECEDULA, $CEDULA_)
+    {
+        // $cedula_encr = "yt3TIGS4cvQQt3+q6iQ2InVubHr4hm4V7cxn1V3jFC0=";
+        $old_error_reporting = error_reporting();
+        // Desactivar los mensajes de advertencia
+        error_reporting($old_error_reporting & ~E_WARNING);
+        // Realizar la solicitud
+        // Restaurar el nivel de informe de errores original
+
+        try {
+
+            $url = "https://reconocimiento-dataconsulting.ngrok.app/api/CaptureDNI";
+
+            // Datos a enviar en la solicitud POST
+            $data = [
+                "cedula" => $CEDULA_,
+                // "emp" => "SALVACERO",
+                "selfie" => $imagen,
+                "dni" => $IMAGECEDULA
+            ];
+            // Codificar los datos en formato JSON
+            $jsonData = json_encode($data);
+            // Inicializar cURL
+            $ch = curl_init($url);
+            // Configurar opciones de cURL
+            // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Recibir la respuesta como una cadena de texto
+            curl_setopt($ch, CURLOPT_POST, true); // Enviar una solicitud POST
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData); // Datos a enviar en la solicitud POST
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($jsonData),
+                'apiKey: DNkAgQHRnuMIwJFY3pVCrwDtmyuJajmQEMlE' // Agregar la API key en el encabezado
+            ]);
+
+            // Ejecutar la solicitud
+            $response = curl_exec($ch);
+
+            // Manejar errores
+            if (curl_errno($ch)) {
+                // echo 'Error:' . curl_error($ch);
+                return [0, curl_error($ch), $data];
             } else {
                 $data = json_decode($response, true);
                 return [1, $data];
@@ -1066,7 +1122,6 @@ class principalmodel extends Model
         } catch (Exception $e) {
             $e = $e->getMessage();
             return [0, $e];
-
         }
     }
 

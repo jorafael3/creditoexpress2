@@ -226,7 +226,7 @@ require 'views/header.php';
                                             </div>
 
                                             <div class="col-md-12 d-none" id="CANVAS_CAMARA">
-                                                <video id="theVideo" autoplay muted></video>
+                                                <video id="theVideo" class="img-fluid" autoplay muted></video>
                                                 <canvas id="theCanvas" class="d-none"></canvas>
                                                 <canvas id="theCanvas2" class="d-none"></canvas>
                                             </div>
